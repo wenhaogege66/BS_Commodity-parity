@@ -1,118 +1,193 @@
 <template>
-  <div>
-    <div class="main" style="overflow-y: hidden">
-      <el-container>
-        <el-header class="title">
-          <div style="margin-top: 12px; display: inline-block">
-            <img
-              src="./components/icons/logo.png"
-              style="margin-right: 20px; height: 40px; vertical-align: middle"
-            />
-            <span
-              style="
-                font-size: large;
-                font-family: 'Microsoft YaHei';
-                color: black;
-                font-weight: bold;
-              "
-              >图书管理系统</span
-            >
-            <span style="margin-left: 40px; color: rgba(0, 0, 0, 0.2)"
-              >浙江大学数据库系统课程项目</span
-            >
+  <section>
+    <div class="form-box">
+      <div class="form-value">
+        <div>
+          <h2>登录</h2>
+          <div class="inputbox">
+            <div class="icon-email iconfont"></div>
+            <input type="text" v-model="myname" required />
+            <label>用户名/邮箱</label>
           </div>
-        </el-header>
-        <el-container style="width: 100%">
-          <el-aside class="aside" style="display: flex">
-            <el-menu
-              active-text-color="#ffd04b"
-              background-color="#0270c1"
-              default-active="1"
-              text-color="#fff"
-              style="height: 100%; width: 100%"
-              :router="true"
-            >
-              <el-menu-item index="book">
-                <el-icon>
-                  <Reading />
-                </el-icon>
-                <span>图书管理</span>
-              </el-menu-item>
-              <el-menu-item index="card">
-                <el-icon>
-                  <Postcard />
-                </el-icon>
-                <span>借书证管理</span>
-              </el-menu-item>
-              <el-menu-item index="borrow">
-                <el-icon>
-                  <Tickets />
-                </el-icon>
-                <span>借书记录查询</span>
-              </el-menu-item>
-            </el-menu>
-          </el-aside>
-
-          <el-main style="height: 100%; width: 100%">
-            <el-scrollbar height="100%">
-              <RouterView
-                class="content"
-                style="
-                  height: 90vh;
-                  max-height: 100%;
-                  background-color: white;
-                  color: black;
-                "
-              />
-            </el-scrollbar>
-          </el-main>
-        </el-container>
-      </el-container>
+          <div class="inputbox">
+            <div class="icon-lock iconfont"></div>
+            <input type="password" v-model="mypassword" required />
+            <label>密码</label>
+          </div>
+          <div class="forget">
+            <label><input type="checkbox" />记住密码</label>
+            <a href="#">忘记密码</a>
+          </div>
+          <button @click="switchUI">登录</button>
+          <div class="register">
+            <p>没有账户请<a href="#">注册</a></p>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
+  </section>
 </template>
 
 <script>
-import { RouterView } from "vue-router";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
 
-export default {};
+export default {
+  setup() {
+    const myname = ref("");
+    const mypassword = ref("");
+    const router = useRouter();
+
+    const switchUI = () => {
+      if (myname.value !== "" && mypassword.value !== "") {
+        console.log("调试用户名");
+        console.log(myname.value);
+        localStorage.setItem("myname", myname.value);
+        localStorage.setItem("mypassword", mypassword.value);
+        router.push("/chat");
+      }
+    };
+
+    return {
+      myname,
+      mypassword,
+      switchUI,
+    };
+  },
+};
 </script>
 
 <style scoped>
-#app {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  background-color: #dcdcdc;
-  width: 100vw;
-  height: 100vh;
-  min-height: 100vh;
+@import "./iconfont/iconfont.css";
+
+.iconfont {
+  font-family: "iconfont" !important;
+  font-size: 24px;
+  font-style: normal;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-email:before {
+  content: "\e66f";
+}
+
+.icon-lock:before {
+  content: "\e69e";
+}
+
+* {
+  margin: 0;
+  padding: 0;
+}
+
+.inputbox div {
+  display: inline;
+}
+
+section {
   display: flex;
-  flex-direction: column;
-}
-
-.main {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  justify-content: center;
+  align-items: center;
   width: 100%;
-  min-height: 100%;
-  height: auto;
-  background-color: #dcdcdc;
+  height: 100vh;
+  background: url("./img/background.jpg");
+  background-position: center;
+  background-size: cover;
 }
 
-.title {
-  background-color: #ffffff;
-  height: 60px;
+.form-box {
+  position: relative;
+  width: 400px;
+  height: 450px;
+  background-color: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.aside {
-  min-height: calc(100vh - 60px);
-  width: 180px;
-  background-color: red;
+h2 {
+  font-size: 32px;
+  color: #fff;
+  text-align: center;
+}
+
+.inputbox {
+  position: relative;
+  margin: 30px 0;
+  width: 310px;
+  border-bottom: 2px solid #fff;
+}
+
+.inputbox label {
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  transform: translateY(-50%);
+  color: #fff;
+  font-size: 16px;
+  pointer-events: none;
+  transition: 0.5s;
+}
+
+input:focus ~ label,
+input:valid ~ label {
+  top: -5px;
+}
+
+.inputbox input {
+  width: 100%;
+  height: 50px;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  padding: 0 35px 0 5px;
+  color: #fff;
+}
+
+.inputbox .iconfont {
+  position: absolute;
+  right: 8px;
+  top: 20px;
+  color: #fff;
+}
+
+.forget {
+  margin: -15px 0 15px;
+  font-size: 14px;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+}
+
+.forget label input {
+  margin-right: 5px;
+}
+
+.forget a {
+  text-decoration: none;
+  color: #fff;
+  margin-left: 10px;
+}
+
+button {
+  width: 100%;
+  height: 40px;
+  border-radius: 20px;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  font-weight: 600;
+  background: #fff;
+}
+
+.register {
+  font-size: 14px;
+  color: #fff;
+  text-align: center;
+  margin: 25px 0 10px;
 }
 </style>
