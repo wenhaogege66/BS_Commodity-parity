@@ -1,11 +1,12 @@
 <template>
   <div>
     <div class="main" style="overflow-y: hidden">
+      <!-- User {{ $route.params.id }} -->
       <el-container>
         <el-header class="title">
           <div style="margin-top: 12px; display: inline-block">
             <img
-              src="./components/icons/logo.png"
+              src="../components/icons/logo.png"
               style="margin-right: 20px; height: 40px; vertical-align: middle"
             />
             <span
@@ -32,19 +33,19 @@
               style="height: 100%; width: 100%"
               :router="true"
             >
-              <el-menu-item index="book">
+              <el-menu-item index="/dashboard/book">
                 <el-icon>
                   <Reading />
                 </el-icon>
                 <span>图书管理</span>
               </el-menu-item>
-              <el-menu-item index="card">
+              <el-menu-item index="/dashboard/card">
                 <el-icon>
                   <Postcard />
                 </el-icon>
                 <span>借书证管理</span>
               </el-menu-item>
-              <el-menu-item index="borrow">
+              <el-menu-item index="/dashboard/borrow">
                 <el-icon>
                   <Tickets />
                 </el-icon>
