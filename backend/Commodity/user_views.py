@@ -6,6 +6,10 @@ from django.http import JsonResponse, HttpResponse
 from .models import *
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
+from django.http import JsonResponse
+import json
+from django.views.decorators.csrf import csrf_exempt
+
 
 class LoginReturn(APIView):
     def get(self, request):
@@ -36,131 +40,100 @@ class LoginReturn(APIView):
         response['code'] = 200
         return Response(response, status=200)  # 返回成功数据
 
+
 def get_user_info(request):
     if request.method == 'GET':
-        filter_users = online_user.objects.filter(user_id=request.GET.get('user_id'))
-        if filter_users.exists():
-            filter_user = filter_users[0]
-        else:
+        user_id = request.GET.get('user_id')
+        try:
+            user = OnlineUser.objects.get(user_id=user_id)
+            result = {
+                "user_name": user.user_name,
+                "email": user.email,
+                "phone_num": user.phone_num
+            }
+            return JsonResponse(result, status=200)
+        except OnlineUser.DoesNotExist:
             return JsonResponse({"error": "User not found"}, status=404)
-        result = {
-            "user_name": filter_user.user_name,
-            "email": filter_user.email,
-            "phone_num": filter_user.phone_num
-        }
-        return JsonResponse(result, safe=False)
     else:
         return JsonResponse({"error": "Method not allowed"}, status=405)
+
+
 
 @csrf_exempt
 def user_add(request):
     if request.method == 'POST':
-        # 将请求体中的数据转化为json格式
-        data = json.loads(request.body.decode('utf-8'))
-        print('看看data:{}'.format(data))
-        # 检查用户名和邮箱是否已经存在
-        filter_email = online_user.objects.filter(email=data.get('email'))
-        filter_username = online_user.objects.filter(user_name=data.get('user_name'))
-        # print('看看filter_email:{}'.format(filter_email))
-        # print('看看filter_username:{}'.format(filter_username))
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+            # 检查用户名和邮箱唯一性
+            if OnlineUser.objects.filter(user_name=data.get('user_name')).exists():
+                return JsonResponse({"error": "Username already exists", 'state': False}, status=403)
+            if OnlineUser.objects.filter(email=data.get('email')).exists():
+                return JsonResponse({"error": "Email already exists", 'state': False}, status=403)
 
-        # 检查邮箱是否已经存在
-        if filter_email.exists():
-            print("User with this email already exists")
-            return JsonResponse({"error": "User with this email already exists", 'state': False}, status=403)
-
-        # 检查用户名是否已经存在
-        if filter_username.exists():
-            print("User with this username already exists")
-            return JsonResponse({"error": "User with this username already exists", 'state': False}, status=403)
-
-        # 如果不存在该邮箱和用户名，则继续创建新用户
-        if online_user.objects.count() == 0:
-            print("新用户")
-            cur_id = 1
-            new_user = online_user(
-                user_id=cur_id,
+            # 创建新用户
+            new_user = OnlineUser(
                 user_name=data.get('user_name'),
-                password=data.get('password'),
                 email=data.get('email'),
                 phone_num=data.get('phone_num'),
                 is_blacklisted=False
             )
+            new_user.set_password(data.get('password'))
             new_user.save()
-        else:
-            print("新用户1")
-            new_user = online_user(
-                user_name=data.get('user_name'),
-                password=data.get('password'),
-                email=data.get('email'),
-                phone_num=data.get('phone_num'),
-                is_blacklisted=False
-            )
-            new_user.save()
-
-        return JsonResponse({"success": "User added successfully", 'state': True}, status=201)
-
+            return JsonResponse({"success": "User added successfully", 'state': True}, status=201)
+        except KeyError:
+            return JsonResponse({"error": "Invalid request body", 'state': False}, status=400)
     elif request.method == 'OPTIONS':
         return JsonResponse({"success": "OPTIONS operation"}, status=200)
-
     else:
         return JsonResponse({"error": "Method not allowed", 'state': False}, status=405)
-
 
 
 @csrf_exempt
 def user_log_in(request):
     if request.method == 'POST':
-        # 将请求体中的数据转化为json格式
-        data = json.loads(request.body.decode('utf-8'))
-        # 尝试通过用户名查找用户
-        filter_online_user = online_user.objects.filter(user_name=data.get('user_name'))
-        # 如果用户名不存在，尝试通过邮箱查找用户
-        if not filter_online_user.exists():
-            filter_online_user = online_user.objects.filter(email=data.get('user_name'))  # 这里用 user_name 来作为邮箱输入
-        # 检查用户是否存在
-        if filter_online_user.exists():
-            cur_user = filter_online_user[0]
-            # 检查是否在黑名单中
-            if cur_user.is_blacklisted:
-                return JsonResponse({"error": "This user is blacklisted", 'state': False}, status=400)
-            # 用户存在，对照密码
-            if data.get('password') == cur_user.password:
-                return_data = {'user_id': cur_user.user_id, 'state': True}
-                return JsonResponse(return_data, status=200)
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+            # 根据用户名或邮箱查找用户
+            user = OnlineUser.objects.filter(user_name=data.get('user_name')).first() or \
+                   OnlineUser.objects.filter(email=data.get('user_name')).first()
+            if not user:
+                return JsonResponse({"error": "User does not exist", 'state': False}, status=403)
+            if user.is_blacklisted:
+                return JsonResponse({"error": "This user is blacklisted", 'state': False}, status=403)
+            # 验证密码
+            if user.check_password(data.get('password')):
+                return JsonResponse({"user_id": user.user_id, "state": True}, status=200)
             else:
-                return JsonResponse({"error": "Password is wrong", 'state': False}, status=400)
-        else:
-            return JsonResponse({"error": "User does not exist", 'state': False}, status=403)
+                return JsonResponse({"error": "Password is incorrect", 'state': False}, status=400)
+        except KeyError:
+            return JsonResponse({"error": "Invalid request body", 'state': False}, status=400)
     elif request.method == 'OPTIONS':
         return JsonResponse({"success": "OPTIONS operation"}, status=200)
     else:
-        return JsonResponse({"error": "Method not allowed", 'state': True}, status=405)
+        return JsonResponse({"error": "Method not allowed", 'state': False}, status=405)
 
-    
+
 @csrf_exempt
 def user_change_password(request):
     if request.method == 'POST':
-        # 将请求体中的数据转化为json格式
-        data = json.loads(request.body.decode('utf-8'))
-        print('看看data:{}'.format(data))
-        filter_online_user = online_user.objects.filter(user_name=data.get('user_name'))
-        # print('看看filter_online_user:{}'.format(filter_online_user))
-        if (filter_online_user.exists()):
-            # 用户存在开始对照密码
-            cur_user =  online_user.objects.get(user_name = data.get('user_name'))
-            if(data.get('email') == cur_user.email and data.get('phone_num') == cur_user.phone_num):
-                online_user.objects.filter(user_name = data.get('user_name')).update(password = data.get('new_password'))
-                return_data = {'state': True}
-                return JsonResponse(return_data, status=200)
+        try:
+            data = json.loads(request.body.decode('utf-8'))
+            user = OnlineUser.objects.filter(user_name=data.get('user_name')).first()
+            if not user:
+                return JsonResponse({"error": "User does not exist", 'state': False}, status=403)
+            if user.email == data.get('email') and user.phone_num == data.get('phone_num'):
+                user.set_password(data.get('new_password'))
+                user.save()
+                return JsonResponse({"success": "Password updated successfully", 'state': True}, status=200)
             else:
-                return JsonResponse({"error": "information is wrong",'state': False}, status=400)
-        else:
-            return JsonResponse({"error": "User don't exist",'state': False}, status=403)
-    elif request.method == 'OPTION':
-        return JsonResponse({"success": "OPTION operation"}, status=200)
+                return JsonResponse({"error": "Information is incorrect", 'state': False}, status=400)
+        except KeyError:
+            return JsonResponse({"error": "Invalid request body", 'state': False}, status=400)
+    elif request.method == 'OPTIONS':
+        return JsonResponse({"success": "OPTIONS operation"}, status=200)
     else:
-        return JsonResponse({"error": "Method not allowed",'state': True}, status=405)
+        return JsonResponse({"error": "Method not allowed", 'state': False}, status=405)
+
 
 
 

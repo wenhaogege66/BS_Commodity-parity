@@ -1,9 +1,8 @@
 import Container from '@mui/material/Container';
 import CssBaseline from '@mui/material/CssBaseline';
-import Footer from './components/Footer';
+import { useEffect } from 'react';
 import Latest from './components/Latest';
 import MainContent from './components/MainContent';
-import { useEffect } from 'react';
 
 export default function Campaign() {
   useEffect(() => {

@@ -173,10 +173,10 @@ export default function AppAppBar() {
             <HandChainrityIcon />
             <Box sx={{ display: { xs: 'none', md: 'flex' } }}>
               <Button variant="text"  onClick={() => { navigate("/root/campaign") }}>
-                筹款活动
+                商品列表
               </Button>
               <Button variant="text"  onClick={() => { navigate("/root/launch") }}>
-                发起筹款
+                成为商家
               </Button>
               <Button variant="text"  onClick={() => { navigate("/root/about") }}>
                 关于我们

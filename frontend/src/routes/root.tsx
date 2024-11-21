@@ -1,21 +1,11 @@
+import { ThemeOptions } from "@mui/material";
+import { createTheme, PaletteMode, ThemeProvider } from '@mui/material/styles';
+import React from "react";
 import { Outlet } from "react-router-dom";
 import AppAppBar from "../component/AppAppBar";
-import { useEffect, useState } from "react";
-import { web3 } from "../utils/contracts";
-import { createTheme, ThemeProvider, PaletteMode } from '@mui/material/styles';
-import getBlogTheme from '../theme/getBlogTheme';
-import React from "react";
 import Footer from "../pages/campaign/components/Footer";
-import { Button, ThemeOptions } from "@mui/material";
+import getBlogTheme from '../theme/getBlogTheme';
 
-
-// const theme = createTheme({
-//     palette: {
-//         primary:{
-//             main:"#ff914d",
-//         }
-//     }
-// });
 
 export const themeOptions: ThemeOptions = {
   palette: {

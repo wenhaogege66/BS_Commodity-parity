@@ -1,10 +1,9 @@
 import MaxWidthWrapper from "../component/MaxWidthWrapper";
 //shift + alt + o 去除不必要引入
+import { createTheme, PaletteMode, ThemeOptions, ThemeProvider } from '@mui/material/styles';
+import React from "react";
 import { Link } from "react-router-dom";
 import AppAppBar from '../component/AppAppBar';
-import getBlogTheme from "../theme/getBlogTheme";
-import { createTheme, ThemeProvider, PaletteMode, ThemeOptions } from '@mui/material/styles';
-import React from "react";
 
 export const themeOptions: ThemeOptions = {
   palette: {
@@ -75,20 +74,13 @@ export default function Home() {
   return (
     <ThemeProvider theme={blogTheme }>
       <AppAppBar />
-      <MaxWidthWrapper className=' mb-12 mt-28 sm:mt-40 flex flex-col items-center justify-center text-center'>
-        {/* <div className='mx-auto mb-4 flex max-w-fit items-center justify-center space-x-2 overflow-hidden rounded-full border border-gray-200 bg-white px-7 py-2 shadow-md backdrop-blur transition-all hover:border-gray-300 hover:bg-white/50'>
-          <p className='text-sm font-semibold text-gray-700'>
-            HandChainrity is now public!
-          </p>
-        </div> */}
+      <MaxWidthWrapper className=' mb-4 mt-28 sm:mt-40 flex flex-col items-center justify-center text-center'>
         <h1 className='max-w-4xl text-5xl font-bold md:text-6xl lg:text-7xl'>
           Start with{' '}
-          <span className='text-orange-600'>HandChainrity</span>{' '}
+          <span className='text-orange-600'>PriceScout</span>{' '}
         </h1>
         <p className='mt-5 max-w-prose text-zinc-700 sm:text-lg'>
-          开始尝试 HandChainrity，通过区块链开始众筹和捐赠。<br/>
-        <b style={{color:"#ff914d"}}>HandChainrity</b> allows you to start crowdfunding and donate to others through blockchain.
-          Simply fill up your info and get started in minutes.
+        <b style={{color:"#ff914d"}}>PriceScout</b> allows you to compare prices on <b> JD, Tmall, Taobao </b> and many other <b> e-commerce platforms</b> with <b style={{color:"#ff914d"}}> one click! </b>
           {/* 翻译成中文 */}
 
         </p>
@@ -97,9 +89,9 @@ export default function Home() {
           className= 'mt-5 inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50'
           to='/root/campaign'
           target='_blank'>
-          <div className='mx-auto mb-4 flex max-w-fit items-center justify-center space-x-2 overflow-hidden rounded-full border border-gray-200 bg-white px-7 py-2 shadow-md backdrop-blur transition-all hover:border-gray-300 hover:bg-white/50'>
+          <div className='mx-auto mt-4 mb-2 flex max-w-fit items-center justify-center space-x-2 overflow-hidden rounded-full border border-gray-200 bg-white px-7 py-2 shadow-md backdrop-blur transition-all hover:border-gray-300 hover:bg-white/50'>
           <p className='text-lg font-semibold text-gray-700'>
-            Try HandChainrity{' '}
+            Get started{' '}
           </p>
         </div>
         </Link>
@@ -155,11 +147,11 @@ export default function Home() {
         <div className='mb-12 px-6 lg:px-8'>
           <div className='mx-auto max-w-2xl sm:text-center'>
             <h2 className='mt-2 font-bold text-4xl text-gray-900 sm:text-5xl'>
-              Start crowdfunding in minutes
+              Start price comparison in minutes
             </h2>
             <p className='mt-4 text-lg text-gray-600'>
-              Fundraising has never been
-              more secure and transparent than with HandChain.
+              Comparison shopping has never been
+              more secure and transparent than with PriceScout.
             </p>
           </div>
         </div>
@@ -175,11 +167,11 @@ export default function Home() {
                 Sign up for an account
               </span>
               <span className='mt-2 text-zinc-700'>
-                If you just want to donate , start {' '}
+                If you just want to browse right away, start your{' '}
                 <Link
                   to='/root/campaign'
                   className='text-blue-700 underline underline-offset-2'>
-                  donating
+                  searching
                 </Link>
                 {' '}now.
               </span>
@@ -191,10 +183,10 @@ export default function Home() {
                 Step 2
               </span>
               <span className='text-xl font-semibold'>
-                Fill in your fundraising information and personal details
+                Search and compare prices
               </span>
               <span className='mt-2 text-zinc-700'>
-              All funds circulate only on the blockchain.
+              Use our powerful search tool to find products on multiple platforms instantly. Compare prices, features, and ratings side-by-side to make informed decisions.
               </span>
             </div>
           </li>
@@ -204,11 +196,10 @@ export default function Home() {
                 Step 3
               </span>
               <span className='text-xl font-semibold'>
-                Start your crowdfunding 
+                Save, track, and shop smarter
               </span>
               <span className='mt-2 text-zinc-700'>
-                It&apos;s that simple. Try out HandChain today -
-                it really takes less than a minute.
+                Ready to find the best deals? Sign up today and start saving!
               </span>
             </div>
           </li>
