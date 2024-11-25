@@ -9,6 +9,31 @@ export interface OutletContext {
   account: string;
 }
 
+export interface Commodity {
+    "article_title": string;
+    "article_mall": string;
+    "mall_logo_url": string;
+    "article_price": number;
+    "wiki_id": number;
+    "hash_id": string;
+    "comment_count": number;
+    "page_price": number;
+    "article_pic": string;
+    "link": string;
+    "go_link": string;
+    "coupon": {
+        "title": string;
+        "is_show": number;
+        "link": string;
+        "go_link": string;
+        "article_mall": string;
+    }[];
+    "type": string;
+    "mall_id": number;
+    "article_tag_list": string[];
+    "show_btn": number;
+}
+
 export interface CampaignType {
     id: number;
     title: string;
