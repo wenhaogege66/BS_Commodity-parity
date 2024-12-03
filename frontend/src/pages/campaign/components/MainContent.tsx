@@ -103,7 +103,7 @@ export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
         "http://localhost:80/search/ajax_search_product_list",
         {
           params: {
-            keywords: inputValue,
+            keywords: query,
             sort: "综合",
             price_min: "",
             price_max: "",
@@ -120,8 +120,8 @@ export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
         (commodity: Commodity) => {
           // 截断商品标题
           const truncatedTitle =
-            commodity.article_title.length > 40
-              ? `${commodity.article_title.slice(0, 40)}...`
+            commodity.article_title.length > 50
+              ? `${commodity.article_title.slice(0, 50)}...`
               : commodity.article_title;
 
           return {
@@ -733,7 +733,7 @@ export default function MainContent() {
                 alignItems: "center",
               }}
             >
-              {commodity.show_btn === 1 && (
+              {commodity.show_btn === 1 && commodity.article_tag_list[0] !== "低于常卖价" && (
                 <Button
                   variant="outlined"
                   color="primary"
@@ -744,7 +744,7 @@ export default function MainContent() {
                   价格趋势
                 </Button>
               )}
-              {commodity.show_btn === 0 && (
+              {commodity.show_btn === 1 && commodity.article_tag_list[0] === "低于常卖价" &&(
                 <Button
                   color="error"
                   onClick={handleClickDetail}
@@ -792,8 +792,12 @@ export default function MainContent() {
           {/* 商品详情 */}
           <Card sx={{ m: 2 }}>
             <CardMedia
+              sx={{
+                  width: 150,
+                  height: 150,
+              }}
               component="img"
-              height="180"
+              // height="180"
               image={data.article_pic}
               alt={data.article_title}
             />
