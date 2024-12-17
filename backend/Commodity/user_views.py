@@ -79,7 +79,7 @@ def user_add(request):
             )
             new_user.set_password(data.get('password'))
             new_user.save()
-            return JsonResponse({"success": "User added successfully", 'state': True}, status=201)
+            return JsonResponse({"username": new_user.user_name, "email": new_user.email}, status=201)
         except KeyError:
             return JsonResponse({"error": "Invalid request body", 'state': False}, status=400)
     elif request.method == 'OPTIONS':
@@ -92,6 +92,7 @@ def user_add(request):
 def user_log_in(request):
     if request.method == 'POST':
         try:
+            # print("看看那",request.body.decode('utf-8'))
             data = json.loads(request.body.decode('utf-8'))
             # 根据用户名或邮箱查找用户
             user = OnlineUser.objects.filter(user_name=data.get('user_name')).first() or \
@@ -102,7 +103,7 @@ def user_log_in(request):
                 return JsonResponse({"error": "This user is blacklisted", 'state': False}, status=403)
             # 验证密码
             if user.check_password(data.get('password')):
-                return JsonResponse({"user_id": user.user_id, "state": True}, status=200)
+                return JsonResponse({"username": user.user_name, "email": user.email}, status=200)
             else:
                 return JsonResponse({"error": "Password is incorrect", 'state': False}, status=400)
         except KeyError:

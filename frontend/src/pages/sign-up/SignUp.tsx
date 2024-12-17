@@ -1,99 +1,99 @@
-import * as React from 'react';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
-import CssBaseline from '@mui/material/CssBaseline';
-import Divider from '@mui/material/Divider';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import FormLabel from '@mui/material/FormLabel';
-import FormControl from '@mui/material/FormControl';
-import Link from '@mui/material/Link';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import Stack from '@mui/material/Stack';
-import MuiCard from '@mui/material/Card';
+import * as React from "react";
+import Box from "@mui/material/Box";
+import Button from "@mui/material/Button";
+import Checkbox from "@mui/material/Checkbox";
+import CssBaseline from "@mui/material/CssBaseline";
+import Divider from "@mui/material/Divider";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormLabel from "@mui/material/FormLabel";
+import FormControl from "@mui/material/FormControl";
+import Link from "@mui/material/Link";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import Stack from "@mui/material/Stack";
+import MuiCard from "@mui/material/Card";
 import {
   createTheme,
   ThemeProvider,
   styled,
   PaletteMode,
-} from '@mui/material/styles';
-import getSignUpTheme from './theme/getSignUpTheme';
-import { GoogleIcon, FacebookIcon, SitemarkIcon } from './CustomIcons';
-import TemplateFrame from './TemplateFrame';
-import axios , { AxiosError, AxiosResponse }  from 'axios';
-import { useNavigate } from 'react-router-dom';
-import HandChainrityIcon from '../../component/HandChainrityIcon';
+} from "@mui/material/styles";
+import getSignUpTheme from "./theme/getSignUpTheme";
+import { GoogleIcon, FacebookIcon, SitemarkIcon } from "./CustomIcons";
+import TemplateFrame from "./TemplateFrame";
+import axios, { AxiosError, AxiosResponse } from "axios";
+import { useNavigate } from "react-router-dom";
+import HandChainrityIcon from "../../component/HandChainrityIcon";
 
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8888', // 设置基础 URL
-  timeout: 10000,                    // 可选：请求超时时间
+  baseURL: "http://127.0.0.1:8000", // 设置基础 URL
+  timeout: 10000, // 可选：请求超时时间
 });
 
 const Card = styled(MuiCard)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  alignSelf: 'center',
-  width: '100%',
+  display: "flex",
+  flexDirection: "column",
+  alignSelf: "center",
+  width: "100%",
   padding: theme.spacing(4),
   gap: theme.spacing(2),
-  margin: 'auto',
+  margin: "auto",
   boxShadow:
-    'hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px',
-  [theme.breakpoints.up('sm')]: {
-    width: '450px',
+    "hsla(220, 30%, 5%, 0.05) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.05) 0px 15px 35px -5px",
+  [theme.breakpoints.up("sm")]: {
+    width: "450px",
   },
-  ...theme.applyStyles('dark', {
+  ...theme.applyStyles("dark", {
     boxShadow:
-      'hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px',
+      "hsla(220, 30%, 5%, 0.5) 0px 5px 15px 0px, hsla(220, 25%, 10%, 0.08) 0px 15px 35px -5px",
   }),
 }));
 
 const SignUpContainer = styled(Stack)(({ theme }) => ({
-  height: '100%',
+  height: "100%",
   padding: 4,
   backgroundImage:
-    'radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))',
-  backgroundRepeat: 'no-repeat',
-  ...theme.applyStyles('dark', {
+    "radial-gradient(ellipse at 50% 50%, hsl(210, 100%, 97%), hsl(0, 0%, 100%))",
+  backgroundRepeat: "no-repeat",
+  ...theme.applyStyles("dark", {
     backgroundImage:
-      'radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))',
+      "radial-gradient(at 50% 50%, hsla(210, 100%, 16%, 0.5), hsl(220, 30%, 5%))",
   }),
 }));
 
 export default function SignUp() {
-  const [mode, setMode] = React.useState<PaletteMode>('light');
+  const [mode, setMode] = React.useState<PaletteMode>("light");
   const [showCustomTheme, setShowCustomTheme] = React.useState(true);
   const defaultTheme = createTheme({ palette: { mode } });
   const SignUpTheme = createTheme(getSignUpTheme(mode));
   const [nameError, setNameError] = React.useState(false);
-  const [nameErrorMessage, setNameErrorMessage] = React.useState('');
+  const [nameErrorMessage, setNameErrorMessage] = React.useState("");
   const [emailError, setEmailError] = React.useState(false);
-  const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
+  const [emailErrorMessage, setEmailErrorMessage] = React.useState("");
   const [passwordError, setPasswordError] = React.useState(false);
-  const [passwordErrorMessage, setPasswordErrorMessage] = React.useState('');
+  const [passwordErrorMessage, setPasswordErrorMessage] = React.useState("");
   const [addressError, setAddressError] = React.useState(false);
-  const [addressErrorMessage, setAddressErrorMessage] = React.useState('');
+  const [addressErrorMessage, setAddressErrorMessage] = React.useState("");
   const navigate = useNavigate(); // 初始化 navigate
   // This code only runs on the client side, to determine the system color preference
   React.useEffect(() => {
     // Check if there is a preferred mode in localStorage
-    const savedMode = localStorage.getItem('themeMode') as PaletteMode | null;
+    const savedMode = localStorage.getItem("themeMode") as PaletteMode | null;
     if (savedMode) {
       setMode(savedMode);
     } else {
       // If no preference is found, it uses system preference
       const systemPrefersDark = window.matchMedia(
-        '(prefers-color-scheme: dark)',
+        "(prefers-color-scheme: dark)"
       ).matches;
-      setMode(systemPrefersDark ? 'dark' : 'light');
+      setMode(systemPrefersDark ? "dark" : "light");
     }
   }, []);
 
   const toggleColorMode = () => {
-    const newMode = mode === 'dark' ? 'light' : 'dark';
+    const newMode = mode === "dark" ? "light" : "dark";
     setMode(newMode);
-    localStorage.setItem('themeMode', newMode); // Save the selected mode to localStorage
+    localStorage.setItem("themeMode", newMode); // Save the selected mode to localStorage
   };
 
   const toggleCustomTheme = () => {
@@ -101,57 +101,57 @@ export default function SignUp() {
   };
 
   const validateInputs = () => {
-    const name = document.getElementById('name') as HTMLInputElement;
-    const email = document.getElementById('email') as HTMLInputElement;
-    const password = document.getElementById('password') as HTMLInputElement;
-    const address = document.getElementById('address') as HTMLInputElement;
-    const confirm = document.getElementById('confirm') as HTMLInputElement;
+    const name = document.getElementById("name") as HTMLInputElement;
+    const email = document.getElementById("email") as HTMLInputElement;
+    const password = document.getElementById("password") as HTMLInputElement;
+    const phone_num = document.getElementById("phone_num") as HTMLInputElement;
+    const confirm = document.getElementById("confirm") as HTMLInputElement;
 
     let isValid = true;
 
     if (!name.value || name.value.length < 1) {
       setNameError(true);
-      setNameErrorMessage('Name is required.');
+      setNameErrorMessage("Name is required.");
       isValid = false;
     } else {
       setNameError(false);
-      setNameErrorMessage('');
+      setNameErrorMessage("");
     }
 
     if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
       setEmailError(true);
-      setEmailErrorMessage('Please enter a valid email address.');
+      setEmailErrorMessage("Please enter a valid email phone_num.");
       isValid = false;
     } else {
       setEmailError(false);
-      setEmailErrorMessage('');
+      setEmailErrorMessage("");
     }
 
     if (!password.value || password.value.length < 6) {
       setPasswordError(true);
-      setPasswordErrorMessage('Password must be at least 6 characters long.');
+      setPasswordErrorMessage("Password must be at least 6 characters long.");
       isValid = false;
     } else {
       setPasswordError(false);
-      setPasswordErrorMessage('');
+      setPasswordErrorMessage("");
     }
 
-    if (!address.value || address.value.length < 1) {
+    if (!phone_num.value || phone_num.value.length !== 11) {
       setAddressError(true);
-      setAddressErrorMessage('Address is required.');
+      setAddressErrorMessage("Please input the right phone number.");
       isValid = false;
     } else {
       setAddressError(false);
-      setAddressErrorMessage('');
+      setAddressErrorMessage("");
     }
 
     if (!confirm.value || confirm.value !== password.value) {
       setPasswordError(true);
-      setPasswordErrorMessage('Password does not match.');
+      setPasswordErrorMessage("Password does not match.");
       isValid = false;
     } else {
       setPasswordError(false);
-      setPasswordErrorMessage('');
+      setPasswordErrorMessage("");
     }
 
     return isValid;
@@ -160,56 +160,54 @@ export default function SignUp() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    let name = data.get('name') as string;
-    let address = data.get('address') as string;
-    let email = data.get('email') as string;
-    let password = data.get('password') as string;
-  
+    let name = data.get("name") as string;
+    let phone_num = data.get("phone_num") as string;
+    let email = data.get("email") as string;
+    let password = data.get("password") as string;
+
     // 输入验证
     if (!validateInputs()) {
       return; // 如果验证失败，停止提交
     }
-  
+
     console.log({
       name: name,
-      address: address,
+      phone_num: phone_num,
       email: email,
       password: password,
     });
-  
+
     try {
       const config = {
         headers: {
-          'Content-Type': 'application/json', // 修改为 JSON 格式
+          "Content-Type": "application/json", // 修改为 JSON 格式
         },
       };
-  
+
       // 直接创建 JSON 对象
       const requestData = {
-        username: name,
-        address: address,
+        user_name: name,
+        phone_num: phone_num,
         email: email,
         password: password,
       };
-  
-      const res = await axiosInstance.post('/api/users', requestData, config);
-      
-      localStorage.setItem('userInfo', JSON.stringify(res.data)); // 使用 res.data
-      console.log(res.data); // 确保只打印数据部分
-      navigate('/root/campaign'); 
-  
+
+      const res = await axiosInstance.post("/user/sign_up/", requestData, config);
+
+      localStorage.setItem("userInfo", JSON.stringify(res.data)); // 使用 res.data
+      // console.log("ss",res.data); // 确保只打印数据部分
+      navigate("/root/campaign");
     } catch (error: unknown) {
       const err = error as AxiosError<{ message: string }>;
       const errorMessage: string =
         err.response && err.response.data.message
           ? err.response.data.message
           : err.message;
-  
+
       // 处理错误消息
       console.error(errorMessage);
     }
   };
-  
 
   return (
     <TemplateFrame
@@ -224,24 +222,43 @@ export default function SignUp() {
         <SignUpContainer direction="column" justifyContent="space-between">
           <Stack
             sx={{
-              justifyContent: 'center',
-              height: '100dvh',
+              justifyContent: "center",
+              height: "100dvh",
               p: 2,
             }}
           >
             <Card variant="outlined">
-              <HandChainrityIcon />
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "start",
+                  gap: 0, // 设置图标和文字之间的间距
+                  mb: 0, // 设置底部的间距
+                  ml:-4,
+                }}
+              >
+                <HandChainrityIcon />
+                <Typography
+                  component="h4"
+                  variant="inherit"
+                  sx={{ fontSize: "clamp(2rem, 10vw, 2.15rem)",color:"#ff914d"}}
+                >
+                  PriceScout
+                </Typography>
+              </Box>
+
               <Typography
                 component="h1"
                 variant="h4"
-                sx={{ width: '100%', fontSize: 'clamp(2rem, 10vw, 2.15rem)' }}
+                sx={{ width: "100%", fontSize: "clamp(2rem, 10vw, 2.15rem)" }}
               >
                 用户注册
               </Typography>
               <Box
                 component="form"
                 onSubmit={handleSubmit}
-                sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+                sx={{ display: "flex", flexDirection: "column", gap: 2 }}
               >
                 <FormControl>
                   <FormLabel htmlFor="name">用户名</FormLabel>
@@ -254,21 +271,21 @@ export default function SignUp() {
                     placeholder="张爱心"
                     error={addressError}
                     helperText={addressErrorMessage}
-                    color={addressError ? 'error' : 'primary'}
+                    color={addressError ? "error" : "primary"}
                   />
                 </FormControl>
                 <FormControl>
-                  <FormLabel htmlFor="address">区块链地址</FormLabel>
+                  <FormLabel htmlFor="phone_num">手机号</FormLabel>
                   <TextField
                     autoComplete="name"
-                    name="address"
+                    name="phone_num"
                     required
                     fullWidth
-                    id="address"
-                    placeholder="0x1234567890000000000000000000000000ABCDEF"
+                    id="phone_num"
+                    placeholder="18786980391"
                     error={addressError}
                     helperText={addressErrorMessage}
-                    color={addressError ? 'error' : 'primary'}
+                    color={addressError ? "error" : "primary"}
                   />
                 </FormControl>
                 <FormControl>
@@ -283,7 +300,7 @@ export default function SignUp() {
                     variant="outlined"
                     error={emailError}
                     helperText={emailErrorMessage}
-                    color={passwordError ? 'error' : 'primary'}
+                    color={passwordError ? "error" : "primary"}
                   />
                 </FormControl>
                 <FormControl>
@@ -299,7 +316,7 @@ export default function SignUp() {
                     variant="outlined"
                     error={passwordError}
                     helperText={passwordErrorMessage}
-                    color={passwordError ? 'error' : 'primary'}
+                    color={passwordError ? "error" : "primary"}
                   />
                 </FormControl>
                 <FormControl>
@@ -315,12 +332,14 @@ export default function SignUp() {
                     variant="outlined"
                     error={passwordError}
                     helperText={passwordErrorMessage}
-                    color={passwordError ? 'error' : 'primary'}
+                    color={passwordError ? "error" : "primary"}
                   />
                 </FormControl>
                 <FormControlLabel
-                  control={<Checkbox value="allowExtraEmails" color="primary" />}
-                  label="我同意 HandChainrity 的服务条款和隐私政策"
+                  control={
+                    <Checkbox value="allowExtraEmails" color="primary" />
+                  }
+                  label="我同意 PriceScout 的服务条款和隐私政策"
                 />
                 <Button
                   type="submit"
@@ -330,20 +349,19 @@ export default function SignUp() {
                 >
                   Sign up | 注册
                 </Button>
-                <Typography sx={{ textAlign: 'center' }}>
-                  已经拥有HandCharity用户?{' '}
+                <Typography sx={{ textAlign: "center" }}>
+                  已经拥有PriceScout用户?{" "}
                   <span>
                     <Link
                       href="signIn"
                       variant="body2"
-                      sx={{ alignSelf: 'center' }}
+                      sx={{ alignSelf: "center" }}
                     >
                       Sign in | 登录
                     </Link>
                   </span>
                 </Typography>
               </Box>
-              
             </Card>
           </Stack>
         </SignUpContainer>

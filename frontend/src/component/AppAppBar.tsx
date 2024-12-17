@@ -1,25 +1,22 @@
-import * as React from 'react';
-import { alpha, styled } from '@mui/material/styles';
-import Box from '@mui/material/Box';
+import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
+import MenuIcon from '@mui/icons-material/Menu';
+import { Tooltip, Typography } from '@mui/material';
 import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
+import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import IconButton from '@mui/material/IconButton';
 import Container from '@mui/material/Container';
 import Divider from '@mui/material/Divider';
-import MenuItem from '@mui/material/MenuItem';
 import Drawer from '@mui/material/Drawer';
-import MenuIcon from '@mui/icons-material/Menu';
-import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
-import HandChainrityIcon from './HandChainrityIcon';
+import IconButton from '@mui/material/IconButton';
+import MenuItem from '@mui/material/MenuItem';
+import { alpha, styled } from '@mui/material/styles';
+import Toolbar from '@mui/material/Toolbar';
+import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Tooltip, Typography } from '@mui/material';
+import HandChainrityIcon from './HandChainrityIcon';
 // import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import {  Menu } from '@mui/material';
+import { Menu } from '@mui/material';
 import userImage from '../img/user.png';
-import { GanacheTestChainId, GanacheTestChainName, GanacheTestChainRpcUrl } from '../utils/ganache';
-import { useEffect } from 'react';
-import { web3 } from '../utils/contracts';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: 'flex',
@@ -42,79 +39,14 @@ export default function AppAppBar() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
   const isLoggedIn = Boolean(userInfo.username); // 检查是否登录
-  const [account, setAccount] = React.useState<string | null>(null);
-  const [isConnected, setIsConnected] = React.useState<boolean>(false);
+
+  // localStorage.clear()
+  console.log("kk123:",userInfo);
+  
 
   const toggleDrawer = (newOpen: boolean) => () => {
     setOpen(newOpen);
   };
-
-    //初始化时检查用户是否连接钱包
-  useEffect(() => {
-    const initCheckAccounts = async () => {
-        // @ts-ignore
-        const { ethereum } = window;
-        if (Boolean(ethereum && ethereum.isMetaMask)) {
-            // 尝试获取连接的用户账户
-            const accounts = await web3.eth.getAccounts()
-            if (accounts && accounts.length) {
-                setAccount(accounts[0])
-                setIsConnected(true)
-                localStorage.setItem('account', accounts[0]);
-            }
-        }
-    }
-      initCheckAccounts()
-  }, [account])
-
-  // 连接钱包
-  const onClickConnectWallet = async () => {
-    // 查看window对象里是否存在ethereum（metamask安装后注入的）对象
-    // @ts-ignore
-    
-
-    const { ethereum } = window;
-    if (!Boolean(ethereum && ethereum.isMetaMask)) {
-        alert('MetaMask is not installed!');
-        return
-    }
-    try {
-        // 如果当前小狐狸不在本地链上，切换Metamask到本地测试链
-        if (ethereum.chainId !== GanacheTestChainId) {
-            const chain = {
-                chainId: GanacheTestChainId, // Chain-ID
-                chainName: GanacheTestChainName, // Chain-Name
-                rpcUrls: [GanacheTestChainRpcUrl], // RPC-URL
-            };
-
-            try {
-                // 尝试切换到本地网络
-                await ethereum.request({ method: "wallet_switchEthereumChain", params: [{ chainId: chain.chainId }] })
-            } catch (switchError: any) {
-                // 如果本地网络没有添加到Metamask中，添加该网络
-                if (switchError.code === 4902) {
-                    await ethereum.request({
-                        method: 'wallet_addEthereumChain', params: [chain]
-                    });
-                }
-            }
-        }
-        // 小狐狸成功切换网络了，接下来让小狐狸请求用户的授权
-        await ethereum.request({ method: 'eth_requestAccounts' });
-        // 获取小狐狸拿到的授权用户列表
-        const accounts = await ethereum.request({ method: 'eth_accounts' });
-        // 如果用户存在，展示其account，否则显示错误信息
-        console.log(accounts[0]);
-        if (accounts && accounts.length){
-          localStorage.setItem('account', accounts[0]);
-          setIsConnected(true);
-        }
-        setAccount(accounts[0] || 'Not able to get accounts');
-    } catch (error: any) {
-        alert(error.message)
-    }
-  }
-  
 
   const EllipsisMiddleTypography = ({ text="", length = 8 }) => {
     if (text.length <= length * 2) {
@@ -181,15 +113,6 @@ export default function AppAppBar() {
               <Button variant="text"  onClick={() => { navigate("/root/about") }}>
                 关于我们
               </Button>
-              {/* <Button variant="text" color="info" size="small">
-                Pricing
-              </Button>
-              <Button variant="text" color="info" size="small" sx={{ minWidth: 0 }}>
-                FAQ
-              </Button>
-              <Button variant="text" color="info" size="small" sx={{ minWidth: 0 }}>
-                Blog
-              </Button> */}
             </Box>
           </Box>
           <Box
@@ -198,18 +121,7 @@ export default function AppAppBar() {
               gap: 1,
               alignItems: 'center',
             }}
-          > {isConnected ? (
-            <>
-              <EllipsisMiddleTypography text={'已连接至'+account || '未连接'} length={8} />
-            </>
-          ) : (
-            <Button onClick={onClickConnectWallet} size="small" >
-              <Typography variant="body1" >
-                连接钱包
-              </Typography>
-            </Button>
-          )
-          }
+          >
             {isLoggedIn ? (
               <>
                 <img src={userImage} alt="描述文字" style={{ width: '30px', height: 'auto' }} />

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import SvgIcon from '@mui/material/SvgIcon';
-import { ReactComponent as MySvg } from '../../asset/HandChainrity.svg';
+import { ReactComponent as MySvg } from '../../asset/PriceScout.svg';
 import { Box } from '@mui/material';
 
 export function HandChainrityIcon() {

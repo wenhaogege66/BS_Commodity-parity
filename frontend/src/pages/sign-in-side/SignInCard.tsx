@@ -18,7 +18,7 @@ import { GoogleIcon, FacebookIcon, SitemarkIcon } from './CustomIcons';
 import axios , { AxiosError, AxiosResponse }  from 'axios';
 import { useNavigate } from 'react-router-dom';
 const axiosInstance = axios.create({
-  baseURL: 'http://localhost:8888', // 设置基础 URL
+  baseURL: 'http://127.0.0.1:8000', // 设置基础 URL
   timeout: 10000,                    // 可选：请求超时时间
 });
 
@@ -67,16 +67,16 @@ export default function SignInCard() {
     try {
       const config = {
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
+          'Content-Type': "application/json",
         },
       };
+
       const res = await axiosInstance.post(
-        '/api/users/login',
-        { username, password },
+        '/user/sign_in/',
+        {user_name:username, password:password },
         config
       );
       
-      //dispatch({ type: "USER_LOGIN_SUCCESS", payload: data });
       localStorage.setItem('userInfo', JSON.stringify(res.data));
       console.log("res:", res.data);
       console.log("res.data:", JSON.parse(localStorage.getItem('userInfo') || '{}').username );
@@ -96,11 +96,6 @@ export default function SignInCard() {
         err.response && err.response.data.message
           ? err.response.data.message
           : err.message;
-  
-      // dispatch({
-      //   type: "USER_LOGIN_FAIL",
-      //   payload: errorMessage,
-      // });
     }
   };
 
@@ -141,8 +136,8 @@ export default function SignInCard() {
         variant="h4"
         sx={{ width: '100%' }}
       >
-        Sign in to <b style={{color:"#ff914d"}}>HandChainrity</b>
-        <br /> | 登录手链筹
+        Sign in to <b style={{color:"#ff914d"}}>PriceScout</b>
+        <br /> | 登录比价小子
       </Typography>
       <Box
         component="form"
@@ -151,14 +146,14 @@ export default function SignInCard() {
         sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 2 }}
       >
         <FormControl>
-          <FormLabel htmlFor="email">邮箱</FormLabel>
+          <FormLabel htmlFor="email">用户名或邮箱</FormLabel>
           <TextField
             error={emailError}
             helperText={emailErrorMessage}
             id="email"
             type="email"
             name="email"
-            placeholder="your@email.com"
+            placeholder="your@email.com or nickname"
             autoComplete="email"
             autoFocus
             required

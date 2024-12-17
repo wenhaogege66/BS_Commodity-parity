@@ -258,7 +258,34 @@ export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
 export default function MainContent() {
   const [open, setOpen] = React.useState(false);
   const [detail, setDetail] = React.useState(false);
+  const [curdetail, setCurdetail] = React.useState<Commodity | null>(null);
+  const [pricehis, setPricehis] = useState<string | null>(null); // 存储历史价格数据的 HTML
   const searchRef = useRef<any>(null);
+
+  // 示例数据
+  const data = {
+    article_title: "SAMA 先马 XP850G 悟空版 ATX3白金牌电脑电源 850W",
+    article_mall: "京东",
+    mall_logo_url:
+      "http://localhost:80/image_proxy/qny.smzdm.com/202201/26/61f0f374020dd3641.png_d320.jpg",
+    shop_name: "先马SAMA京东自营旗舰店",
+    article_price: 459,
+    article_pic:
+      "http://localhost:80/image_proxy/y.zdmimg.com/202410/14/670d00f8488356785.jpg",
+    link: "https://item.jd.com/100145136516.html",
+    important_price_info: [
+      {
+        article_title: "常卖价",
+        article_price: 749,
+        article_date: "2024.10.30",
+      },
+      {
+        article_title: "历史最低",
+        article_price: 373.16,
+        article_date: "2024.11.06",
+      },
+    ],
+  };
 
   const handleIconClick = () => {
     console.log("点击");
@@ -466,38 +493,39 @@ export default function MainContent() {
   };
 
   // 处理点击 Detail 的逻辑
-  const handleClickDetail = (event: React.MouseEvent<HTMLElement>) => {
-    event.stopPropagation(); // 阻止事件冒泡
-    setDetail(true);
-  };
+  const handleClickDetail =
+    (commodity: Commodity) => async (event: React.MouseEvent<HTMLElement>) => {
+      event.stopPropagation(); // 阻止事件冒泡
+
+      console.log("commodity: ", commodity);
+      setCurdetail(commodity); // 设置当前商品详情
+      setDetail(true); // 打开详情弹窗
+      setPricehis(null);
+      try {
+        const response = await axios.post(
+          "http://localhost:8000/commodity/price-trend/",
+          {
+            url: commodity.link,
+          }
+        );
+
+        // 检查响应状态码
+        if (response.status !== 200) {
+          throw new Error(`Error: ${response.status}`);
+        }
+
+        const result = response.data;
+        console.log("Price History Data:", result.data);
+        // 设置历史价格 HTML
+        setPricehis(result.data);
+      } catch (error) {
+        console.error("Failed to fetch price history:", error);
+        setPricehis(null); // 清空数据以防止显示旧数据
+      }
+    };
 
   const handleNavigate = (link: string) => {
     window.open(link, "_blank");
-  };
-
-  // 示例数据
-  const data = {
-    article_title: "SAMA 先马 XP850G 悟空版 ATX3白金牌电脑电源 850W",
-    article_mall: "京东",
-    mall_logo_url:
-      "http://localhost:80/image_proxy/qny.smzdm.com/202201/26/61f0f374020dd3641.png_d320.jpg",
-    shop_name: "先马SAMA京东自营旗舰店",
-    article_price: 459,
-    article_pic:
-      "http://localhost:80/image_proxy/y.zdmimg.com/202410/14/670d00f8488356785.jpg",
-    link: "https://item.jd.com/100145136516.html",
-    important_price_info: [
-      {
-        article_title: "常卖价",
-        article_price: 749,
-        article_date: "2024.10.30",
-      },
-      {
-        article_title: "历史最低",
-        article_price: 373.16,
-        article_date: "2024.11.06",
-      },
-    ],
   };
 
   return (
@@ -733,7 +761,8 @@ export default function MainContent() {
                 alignItems: "center",
               }}
             >
-              {commodity.show_btn === 1 && commodity.article_tag_list[0] !== "低于常卖价" && (
+              {/* {commodity.show_btn === 1 && commodity.article_tag_list[0] !== "低于常卖价" && (
+                // 纯火腿网获取历史
                 <Button
                   variant="outlined"
                   color="primary"
@@ -743,22 +772,37 @@ export default function MainContent() {
                 >
                   价格趋势
                 </Button>
-              )}
-              {commodity.show_btn === 1 && commodity.article_tag_list[0] === "低于常卖价" &&(
+              )} */}
+              {!(
+                commodity.show_btn === 1 &&
+                commodity.article_tag_list[0] === "低于常卖价"
+              ) && (
                 <Button
-                  color="error"
-                  onClick={handleClickDetail}
-                  sx={{
-                    fontWeight: "bold",
-                    border: "1px solid red",
-                    padding: "4px 8px",
-                    borderRadius: 1,
-                    textAlign: "center",
-                  }}
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  sx={{ textTransform: "none", fontWeight: "bold" }}
+                  onClick={handleClickDetail(commodity)}
                 >
-                  低于常卖价
+                  价格趋势
                 </Button>
               )}
+              {commodity.show_btn === 1 &&
+                commodity.article_tag_list[0] === "低于常卖价" && (
+                  <Button
+                    color="error"
+                    onClick={handleClickDetail(commodity)}
+                    sx={{
+                      fontWeight: "bold",
+                      border: "1px solid red",
+                      padding: "4px 8px",
+                      borderRadius: 1,
+                      textAlign: "center",
+                    }}
+                  >
+                    低于常卖价
+                  </Button>
+                )}
             </Box>
           </Card>
         ))
@@ -767,7 +811,7 @@ export default function MainContent() {
           没有找到相关商品，请尝试更精确的搜索。
         </Typography>
       )}
-      {detail === true ? (
+      {detail === true && curdetail !== null ? (
         <Drawer
           anchor="bottom"
           open={detail}
@@ -782,9 +826,9 @@ export default function MainContent() {
         >
           {/* 顶部标题 */}
           <Box sx={{ p: 2, textAlign: "center" }}>
-            <Typography variant="h6">{data.article_title}</Typography>
+            <Typography variant="h6">{curdetail.article_title}</Typography>
             <Typography variant="body2" color="text.secondary">
-              {data.shop_name} · {data.article_mall}
+              {curdetail.article_mall}
             </Typography>
             <Divider sx={{ mt: 2 }} />
           </Box>
@@ -793,21 +837,25 @@ export default function MainContent() {
           <Card sx={{ m: 2 }}>
             <CardMedia
               sx={{
-                  width: 150,
-                  height: 150,
+                width: 150,
+                height: 150,
               }}
               component="img"
               // height="180"
-              image={data.article_pic}
-              alt={data.article_title}
+              image={curdetail.article_pic}
+              alt={curdetail.article_title}
             />
             <CardContent>
               <Typography variant="h6" color="primary">
-                当前价格：¥{data.article_price}
+                当前价格：¥{curdetail.article_price}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 点击购买：
-                <a href={data.link} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={curdetail.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   前往京东
                 </a>
               </Typography>
@@ -817,17 +865,28 @@ export default function MainContent() {
           {/* 历史价格信息 */}
           <Box sx={{ p: 2 }}>
             <Typography variant="subtitle1">历史价格趋势：</Typography>
-            {data.important_price_info.map((info, index) => (
-              <Box
-                key={index}
-                sx={{ display: "flex", justifyContent: "space-between", my: 1 }}
-              >
-                <Typography variant="body2">{info.article_title}</Typography>
-                <Typography variant="body2">
-                  ¥{info.article_price} · {info.article_date}
-                </Typography>
-              </Box>
-            ))}
+
+            <Box
+            sx={{
+                  padding: "0px", 
+                  position: "relative",
+                  width: "100%", 
+                  height: "300px",
+                  margin: "0px auto", 
+            }}
+            >
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: pricehis || "<p>加载中...</p>",
+                }}
+                style={{
+                  position: "relative",
+                  width: "640px",
+                  height: "300px",
+                  overflow: "hidden",
+                }}
+              />
+            </Box>
           </Box>
         </Drawer>
       ) : null}

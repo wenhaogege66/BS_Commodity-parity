@@ -1,5 +1,5 @@
 import { Box, Container, CssBaseline, Divider, Paper, Typography } from "@mui/material";
-import { ReactComponent as MySvg } from '../../asset/HandChainrity.svg';
+import { ReactComponent as MySvg } from '../../asset/PriceScout.svg';
 import { useEffect } from "react";
 
 export default function About() {
