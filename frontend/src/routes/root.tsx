@@ -55,11 +55,6 @@ export const themeOptions: ThemeOptions = {
       },
     },
   },
-//   props: {
-//     MuiTooltip: {
-//       arrow: true,
-//     },
-//   },
   typography: {
     button: {
       fontWeight: 700,

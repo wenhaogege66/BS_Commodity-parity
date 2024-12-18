@@ -48,22 +48,6 @@ export default function AppAppBar() {
     setOpen(newOpen);
   };
 
-  const EllipsisMiddleTypography = ({ text="", length = 8 }) => {
-    if (text.length <= length * 2) {
-        return <Typography variant="body2">{text}</Typography>;
-    }
-
-    const start = text.slice(0, length);
-    const end = text.slice(-length);
-    return (
-      <Tooltip title={text}>
-        <Typography variant="body2" >
-            {start}...{end}
-        </Typography>
-      </Tooltip>
-    );
-};
-
   const handleSignInClick = () => {
     navigate('/signin'); // 跳转到 signinsignup 页面
   };
