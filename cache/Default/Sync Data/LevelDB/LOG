@@ -1,3 +1,2 @@
-2024/12/17-20:49:22.413 4b44 Reusing MANIFEST D:\study-at-zju\BS\Commodity parity\cache\Default\Sync Data\LevelDB/MANIFEST-000001
-2024/12/17-20:49:22.413 4b44 Recovering log #3
-2024/12/17-20:49:22.413 4b44 Reusing old log D:\study-at-zju\BS\Commodity parity\cache\Default\Sync Data\LevelDB/000003.log 
+2024/12/21-16:20:42.917 1150 Creating DB D:\study-at-zju\BS\Commodity parity\cache\Default\Sync Data\LevelDB since it was missing.
+2024/12/21-16:20:42.931 1150 Reusing MANIFEST D:\study-at-zju\BS\Commodity parity\cache\Default\Sync Data\LevelDB/MANIFEST-000001

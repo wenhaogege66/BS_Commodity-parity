@@ -1,22 +1,22 @@
-import * as React from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import MuiCard from '@mui/material/Card';
 import Checkbox from '@mui/material/Checkbox';
 import Divider from '@mui/material/Divider';
-import FormLabel from '@mui/material/FormLabel';
 import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
+import FormLabel from '@mui/material/FormLabel';
 import Link from '@mui/material/Link';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import * as React from 'react';
 
 import { styled } from '@mui/material/styles';
 
-import ForgotPassword from './ForgotPassword';
-import { GoogleIcon, FacebookIcon, SitemarkIcon } from './CustomIcons';
-import axios , { AxiosError, AxiosResponse }  from 'axios';
+import axios, { AxiosError } from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { FacebookIcon, GoogleIcon, SitemarkIcon } from './CustomIcons';
+import ForgotPassword from './ForgotPassword';
 const axiosInstance = axios.create({
   baseURL: 'http://127.0.0.1:8000', // 设置基础 URL
   timeout: 10000,                    // 可选：请求超时时间
@@ -58,12 +58,9 @@ export default function SignInCard() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) =>  {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    let username  = data.get('email');
+    let username = data.get('email');
     let password = data.get('password');
-    console.log({
-      email: username,
-      password: password,
-    });
+    
     try {
       const config = {
         headers: {
@@ -77,25 +74,26 @@ export default function SignInCard() {
         config
       );
       
+      if (res.data.status === 'error') {
+        // 处理错误情况
+        if (res.data.message.includes('用户不存在')) {
+          setEmailError(true);
+          setEmailErrorMessage('用户不存在');
+        } else if (res.data.message.includes('密码错误')) {
+          setPasswordError(true);
+          setPasswordErrorMessage('密码错误');
+        }
+        return;
+      }
+
       localStorage.setItem('userInfo', JSON.stringify(res.data));
-      console.log("res:", res.data);
-      console.log("res.data:", JSON.parse(localStorage.getItem('userInfo') || '{}').username );
-      if (JSON.parse(localStorage.getItem('userInfo') || '{}').username){
-        navigate('/root/campaign'); 
-      }
-      else {
-        setPasswordError(true);
-        setPasswordErrorMessage("登录失败，请重试");
-      }
+      navigate('/', { state: { from: 'login', success: true } });
       
-      
-    }
-    catch (error: unknown) {
+    } catch (error: unknown) {
       const err = error as AxiosError<{ message: string }>;
-      const errorMessage: string =
-        err.response && err.response.data.message
-          ? err.response.data.message
-          : err.message;
+      setPasswordError(true);
+      setPasswordErrorMessage('登录失败，请稍后重试');
+      console.error('Login error:', err);
     }
   };
 

@@ -33,6 +33,7 @@ import {
   Ref,
 } from "react";
 import "./MainContent.css"
+import { useLocation } from 'react-router-dom';
 
 import { Commodity } from "../../../types/interfaces";
 
@@ -47,28 +48,28 @@ interface SearchProps {
  * @param {string} localPath - 本地文件路径，例如 "D:\\study-at-zju\\BS\\Commodity parity\\frontend\\src\\asset\\pricehis\\price_trend_c46e3dad8500b93eb82da62bad818f17.png"
  * @returns {string} 转换后的 HTTP URL，例如 "http://127.0.0.1/pricehis/price_trend_c46e3dad8500b93eb82da62bad818f17.png"
  */
-function convertToHttpUrl(localPath:string) {
-    // 定义本地路径的关键目录标识（映射路径起始位置）
-    const keyDir = "pricehis";
-    const baseUrl = "http://127.0.0.1/pricehis/";
+function convertToHttpUrl(localPath: string) {
+  // 定义本地路径的关键目录标识（映射路径起始位置）
+  const keyDir = "pricehis";
+  const baseUrl = "http://127.0.0.1/pricehis/";
 
-    // 将反斜杠替换为正斜杠，确保路径格式统一
-    const normalizedPath = localPath.replace(/\\/g, "/");
+  // 将反斜杠替换为正斜杠，确保路径格式统一
+  const normalizedPath = localPath.replace(/\\/g, "/");
 
-    // 找到关键目录的位置
-    const keyDirIndex = normalizedPath.indexOf(keyDir);
+  // 找到关键目录的位置
+  const keyDirIndex = normalizedPath.indexOf(keyDir);
 
-    if (keyDirIndex === -1) {
-        console.error("关键目录未找到，无法转换路径");
-        return null;
-    }
+  if (keyDirIndex === -1) {
+    console.error("关键目录未找到，无法转换路径");
+    return null;
+  }
 
-    // 提取从关键目录开始的相对路径
-    const relativePath = normalizedPath.substring(keyDirIndex + keyDir.length + 1); // +1 是为了去除斜杠
+  // 提取从关键目录开始的相对路径
+  const relativePath = normalizedPath.substring(keyDirIndex + keyDir.length + 1); // +1 是为了去除斜杠
 
-    // 拼接完整的 HTTP URL
-    const httpUrl = `${baseUrl}${relativePath}`;
-    return httpUrl;
+  // 拼接完整的 HTTP URL
+  const httpUrl = `${baseUrl}${relativePath}`;
+  return httpUrl;
 }
 
 export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
@@ -291,6 +292,9 @@ export default function MainContent() {
   const [curdetail, setCurdetail] = React.useState<Commodity | null>(null);
   const [pricehis, setPricehis] = useState<string | null>(null); // 存储历史价格数据的 img
   const searchRef = useRef<any>(null);
+  const [loginSuccess, setLoginSuccess] = useState(false);
+  const [registerSuccess, setRegisterSuccess] = useState(false);
+  const location = useLocation();
 
   const handleIconClick = () => {
     console.log("点击");
@@ -534,6 +538,18 @@ export default function MainContent() {
     window.open(link, "_blank");
   };
 
+  useEffect(() => {
+    const state = location.state as { from: string; success?: boolean } | null;
+    console.log("state:", state);
+    if (state?.from === 'login' && state.success) {
+      setLoginSuccess(true);
+      setTimeout(() => setLoginSuccess(false), 6000);
+    } else if (state?.from === 'register' && state.success) {
+      setRegisterSuccess(true);
+      setTimeout(() => setRegisterSuccess(false), 6000);
+    }
+  }, [location]);
+
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
       <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
@@ -545,6 +561,37 @@ export default function MainContent() {
         >
           The current list is empty. Please check if you have connected your
           wallet.
+        </Alert>
+      </Snackbar>
+      <Snackbar 
+        open={loginSuccess} 
+        autoHideDuration={6000} 
+        onClose={() => setLoginSuccess(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setLoginSuccess(false)}
+          severity="success"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          登录成功！欢迎回来
+        </Alert>
+      </Snackbar>
+
+      <Snackbar 
+        open={registerSuccess} 
+        autoHideDuration={6000} 
+        onClose={() => setRegisterSuccess(false)}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setRegisterSuccess(false)}
+          severity="success"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          注册成功！欢迎加入我们
         </Alert>
       </Snackbar>
       <Backdrop
@@ -771,16 +818,16 @@ export default function MainContent() {
                 commodity.show_btn === 1 &&
                 commodity.article_tag_list[0] === "低于常卖价"
               ) && (
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  size="small"
-                  sx={{ textTransform: "none", fontWeight: "bold" }}
-                  onClick={handleClickDetail(commodity)}
-                >
-                  价格趋势
-                </Button>
-              )}
+                  <Button
+                    variant="outlined"
+                    color="primary"
+                    size="small"
+                    sx={{ textTransform: "none", fontWeight: "bold" }}
+                    onClick={handleClickDetail(commodity)}
+                  >
+                    价格趋势
+                  </Button>
+                )}
               {commodity.show_btn === 1 &&
                 commodity.article_tag_list[0] === "低于常卖价" && (
                   <Button
@@ -840,9 +887,9 @@ export default function MainContent() {
               alignItems: "center",
               justifyContent: "space-between",
               paddingRight: 2,
-              marginLeft:5,
-              marginBottom:1,
-              marginRight:5,
+              marginLeft: 5,
+              marginBottom: 1,
+              marginRight: 5,
               borderRadius: 2,
               boxShadow: 1,
               gap: 2,
@@ -949,24 +996,24 @@ export default function MainContent() {
               >
                 收藏到购物车
               </Button>
-                
+
             </Box>
           </Card>
 
           {/* 历史价格信息 */}
-          <Box sx={{textAlign: "center"}}>
-            <Typography variant="h6">{(pricehis === null || pricehis === "") ? ("正努力帮你获取中...."):("价格走势(单位：元)")}</Typography>
+          <Box sx={{ textAlign: "center" }}>
+            <Typography variant="h6">{(pricehis === null || pricehis === "") ? ("正努力帮你获取中....") : ("价格走势(单位：元)")}</Typography>
 
             <Box
-            sx={{
-                  padding: "0px", 
-                  position: "relative",
-                  width: "100%", 
-                  height: "300px",
-                  margin: "0px auto", 
-                  display:"flex",
-                  justifyContent:"center"
-            }}
+              sx={{
+                padding: "0px",
+                position: "relative",
+                width: "100%",
+                height: "300px",
+                margin: "0px auto",
+                display: "flex",
+                justifyContent: "center"
+              }}
             >
               {(pricehis === null || pricehis === "") ? (
                 /* From Uiverse.io by vinodjangid07 */
@@ -980,25 +1027,25 @@ export default function MainContent() {
                         className="trucksvg"
                       >
                         <path
-                          stroke-width="3"
+                          strokeWidth="3"
                           stroke="#282828"
                           fill="#F83D3D"
                           d="M135 22.5H177.264C178.295 22.5 179.22 23.133 179.594 24.0939L192.33 56.8443C192.442 57.1332 192.5 57.4404 192.5 57.7504V89C192.5 90.3807 191.381 91.5 190 91.5H135C133.619 91.5 132.5 90.3807 132.5 89V25C132.5 23.6193 133.619 22.5 135 22.5Z"
                         ></path>
                         <path
-                          stroke-width="3"
+                          strokeWidth="3"
                           stroke="#282828"
                           fill="#7D7C7C"
                           d="M146 33.5H181.741C182.779 33.5 183.709 34.1415 184.078 35.112L190.538 52.112C191.16 53.748 189.951 55.5 188.201 55.5H146C144.619 55.5 143.5 54.3807 143.5 53V36C143.5 34.6193 144.619 33.5 146 33.5Z"
                         ></path>
                         <path
-                          stroke-width="2"
+                          strokeWidth="2"
                           stroke="#282828"
                           fill="#282828"
                           d="M150 65C150 65.39 149.763 65.8656 149.127 66.2893C148.499 66.7083 147.573 67 146.5 67C145.427 67 144.501 66.7083 143.873 66.2893C143.237 65.8656 143 65.39 143 65C143 64.61 143.237 64.1344 143.873 63.7107C144.501 63.2917 145.427 63 146.5 63C147.573 63 148.499 63.2917 149.127 63.7107C149.763 64.1344 150 64.61 150 65Z"
                         ></path>
                         <rect
-                          stroke-width="2"
+                          strokeWidth="2"
                           stroke="#282828"
                           fill="#FFFCAB"
                           rx="1"
@@ -1008,7 +1055,7 @@ export default function MainContent() {
                           x="187"
                         ></rect>
                         <rect
-                          stroke-width="2"
+                          strokeWidth="2"
                           stroke="#282828"
                           fill="#282828"
                           rx="1"
@@ -1018,7 +1065,7 @@ export default function MainContent() {
                           x="193"
                         ></rect>
                         <rect
-                          stroke-width="3"
+                          strokeWidth="3"
                           stroke="#282828"
                           fill="#DFDFDF"
                           rx="2.5"
@@ -1028,7 +1075,7 @@ export default function MainContent() {
                           x="6.5"
                         ></rect>
                         <rect
-                          stroke-width="2"
+                          strokeWidth="2"
                           stroke="#282828"
                           fill="#DFDFDF"
                           rx="2"
@@ -1047,7 +1094,7 @@ export default function MainContent() {
                         className="tiresvg"
                       >
                         <circle
-                          stroke-width="3"
+                          strokeWidth="3"
                           stroke="#282828"
                           fill="#282828"
                           r="13.5"
@@ -1063,7 +1110,7 @@ export default function MainContent() {
                         className="tiresvg"
                       >
                         <circle
-                          stroke-width="3"
+                          strokeWidth="3"
                           stroke="#282828"
                           fill="#282828"
                           r="13.5"
@@ -1099,7 +1146,7 @@ export default function MainContent() {
                     </svg>
                   </div>
                 </div>
-              ):(
+              ) : (
                 <div>
                   <img
                     src={pricehis} // 这里放入图片的 URL
@@ -1107,8 +1154,8 @@ export default function MainContent() {
                     width={1364}
                     height={866}
                     className='rounded-md bg-white p-2 sm:p-5 md:p-2 shadow-2xl ring-1 ring-gray-900/10'
-                  />                
-                  </div>
+                  />
+                </div>
               )}
 
             </Box>

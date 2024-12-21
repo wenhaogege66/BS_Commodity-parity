@@ -1,29 +1,27 @@
-import * as React from "react";
 import Box from "@mui/material/Box";
 import Button from "@mui/material/Button";
+import MuiCard from "@mui/material/Card";
 import Checkbox from "@mui/material/Checkbox";
 import CssBaseline from "@mui/material/CssBaseline";
-import Divider from "@mui/material/Divider";
+import FormControl from "@mui/material/FormControl";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import FormLabel from "@mui/material/FormLabel";
-import FormControl from "@mui/material/FormControl";
 import Link from "@mui/material/Link";
-import TextField from "@mui/material/TextField";
-import Typography from "@mui/material/Typography";
 import Stack from "@mui/material/Stack";
-import MuiCard from "@mui/material/Card";
 import {
   createTheme,
-  ThemeProvider,
-  styled,
   PaletteMode,
+  styled,
+  ThemeProvider,
 } from "@mui/material/styles";
-import getSignUpTheme from "./theme/getSignUpTheme";
-import { GoogleIcon, FacebookIcon, SitemarkIcon } from "./CustomIcons";
-import TemplateFrame from "./TemplateFrame";
-import axios, { AxiosError, AxiosResponse } from "axios";
+import TextField from "@mui/material/TextField";
+import Typography from "@mui/material/Typography";
+import axios, { AxiosError } from "axios";
+import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import HandChainrityIcon from "../../component/HandChainrityIcon";
+import TemplateFrame from "./TemplateFrame";
+import getSignUpTheme from "./theme/getSignUpTheme";
 
 const axiosInstance = axios.create({
   baseURL: "http://127.0.0.1:8000", // 设置基础 URL
@@ -165,26 +163,17 @@ export default function SignUp() {
     let email = data.get("email") as string;
     let password = data.get("password") as string;
 
-    // 输入验证
     if (!validateInputs()) {
-      return; // 如果验证失败，停止提交
+      return;
     }
-
-    console.log({
-      name: name,
-      phone_num: phone_num,
-      email: email,
-      password: password,
-    });
 
     try {
       const config = {
         headers: {
-          "Content-Type": "application/json", // 修改为 JSON 格式
+          "Content-Type": "application/json",
         },
       };
 
-      // 直接创建 JSON 对象
       const requestData = {
         user_name: name,
         phone_num: phone_num,
@@ -194,18 +183,30 @@ export default function SignUp() {
 
       const res = await axiosInstance.post("/user/sign_up/", requestData, config);
 
-      localStorage.setItem("userInfo", JSON.stringify(res.data)); // 使用 res.data
-      // console.log("ss",res.data); // 确保只打印数据部分
-      navigate("/root/campaign");
+      if (res.data.status === 'error') {
+        // 处理不同类型的错误
+        if (res.data.message.includes('用户名已存在')) {
+          setNameError(true);
+          setNameErrorMessage('用户名已被注册');
+        } else if (res.data.message.includes('邮箱已存在')) {
+          setEmailError(true);
+          setEmailErrorMessage('邮箱已被注册');
+        } else if (res.data.message.includes('手机号已存在')) {
+          setAddressError(true);
+          setAddressErrorMessage('手机号已被注册');
+        }
+        return;
+      }
+
+      localStorage.setItem("userInfo", JSON.stringify(res.data));
+      navigate('/', { state: { from: 'register', success: true } });
+      
     } catch (error: unknown) {
       const err = error as AxiosError<{ message: string }>;
-      const errorMessage: string =
-        err.response && err.response.data.message
-          ? err.response.data.message
-          : err.message;
-
-      // 处理错误消息
-      console.error(errorMessage);
+      console.error('Registration error:', err);
+      // 显示一般错误消息
+      setNameError(true);
+      setNameErrorMessage('注册失败，请稍后重试');
     }
   };
 
@@ -270,7 +271,7 @@ export default function SignUp() {
                     id="name"
                     placeholder="张爱心"
                     error={addressError}
-                    helperText={addressErrorMessage}
+                    helperText={nameErrorMessage}
                     color={addressError ? "error" : "primary"}
                   />
                 </FormControl>
