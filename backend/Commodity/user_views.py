@@ -9,7 +9,14 @@ from django.core import serializers
 from django.http import JsonResponse
 import json
 from django.views.decorators.csrf import csrf_exempt
+from django.core.exceptions import ObjectDoesNotExist
+from django.views.decorators.http import require_http_methods
+import jwt
+from datetime import datetime, timedelta
 
+# 添加 JWT 密钥配置
+JWT_SECRET = 'your-secret-key'  # 实际应用中应该放在环境变量中
+JWT_ALGORITHM = 'HS256'
 
 class LoginReturn(APIView):
     def get(self, request):
@@ -64,54 +71,96 @@ def user_add(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body.decode('utf-8'))
-            # 检查用户名和邮箱唯一性
             if OnlineUser.objects.filter(user_name=data.get('user_name')).exists():
                 return JsonResponse({"error": "Username already exists", 'state': False}, status=403)
             if OnlineUser.objects.filter(email=data.get('email')).exists():
                 return JsonResponse({"error": "Email already exists", 'state': False}, status=403)
-
-            # 创建新用户
-            new_user = OnlineUser(
+            
+            user = OnlineUser(
                 user_name=data.get('user_name'),
                 email=data.get('email'),
-                phone_num=data.get('phone_num'),
-                is_blacklisted=False
+                phone_num=data.get('phone_num')
             )
-            new_user.set_password(data.get('password'))
-            new_user.save()
-            return JsonResponse({"username": new_user.user_name, "email": new_user.email}, status=201)
-        except KeyError:
-            return JsonResponse({"error": "Invalid request body", 'state': False}, status=400)
-    elif request.method == 'OPTIONS':
-        return JsonResponse({"success": "OPTIONS operation"}, status=200)
+            user.set_password(data.get('password'))
+            user.save()
+            
+            # 生成 JWT token
+            token = jwt.encode({
+                'user_id': user.user_id,
+                'user_name': user.user_name,
+                'exp': datetime.utcnow() + timedelta(days=1)
+            }, JWT_SECRET, algorithm=JWT_ALGORITHM)
+            
+            return JsonResponse({
+                'state': True,
+                'userInfo': {
+                    'user_id': user.user_id,
+                    'user_name': user.user_name,
+                    'email': user.email,
+                    'role': 'user',  # 默认角色
+                    'token': token
+                }
+            })
+        except Exception as e:
+            return JsonResponse({'error': str(e), 'state': False})
     else:
-        return JsonResponse({"error": "Method not allowed", 'state': False}, status=405)
+        return JsonResponse({'error': "Invalid request method", 'state': False})
 
 
 @csrf_exempt
 def user_log_in(request):
     if request.method == 'POST':
         try:
-            # print("看看那",request.body.decode('utf-8'))
             data = json.loads(request.body.decode('utf-8'))
-            # 根据用户名或邮箱查找用户
-            user = OnlineUser.objects.filter(user_name=data.get('user_name')).first() or \
-                   OnlineUser.objects.filter(email=data.get('user_name')).first()
-            if not user:
-                return JsonResponse({"error": "User does not exist", 'state': False}, status=403)
-            if user.is_blacklisted:
-                return JsonResponse({"error": "This user is blacklisted", 'state': False}, status=403)
-            # 验证密码
-            if user.check_password(data.get('password')):
-                return JsonResponse({"username": user.user_name, "email": user.email}, status=200)
-            else:
-                return JsonResponse({"error": "Password is incorrect", 'state': False}, status=400)
-        except KeyError:
-            return JsonResponse({"error": "Invalid request body", 'state': False}, status=400)
-    elif request.method == 'OPTIONS':
-        return JsonResponse({"success": "OPTIONS operation"}, status=200)
+            login_id = data.get('user_name')  # 可以是用户名或邮箱
+            password = data.get('password')
+            
+            # 尝试通过用户名或邮箱查找用户
+            try:
+                # 使用 Q 对象实现 OR 查询
+                from django.db.models import Q
+                user = OnlineUser.objects.get(
+                    Q(user_name=login_id) | Q(email=login_id)
+                )
+                
+                if user.check_password(password):
+                    # 生成 JWT token
+                    token = jwt.encode({
+                        'user_id': user.user_id,
+                        'user_name': user.user_name,
+                        'exp': datetime.utcnow() + timedelta(days=1)
+                    }, JWT_SECRET, algorithm=JWT_ALGORITHM)
+                    
+                    return JsonResponse({
+                        'state': True,
+                        'userInfo': {
+                            'user_id': user.user_id,
+                            'user_name': user.user_name,
+                            'email': user.email,
+                            'role': user.role,
+                            'token': token
+                        }
+                    })
+                else:
+                    return JsonResponse({
+                        'state': False,
+                        'error': '密码错误'
+                    })
+            except OnlineUser.DoesNotExist:
+                return JsonResponse({
+                    'state': False,
+                    'error': '用户不存在'
+                })
+        except json.JSONDecodeError:
+            return JsonResponse({
+                'state': False,
+                'error': '无效的请求数据'
+            })
     else:
-        return JsonResponse({"error": "Method not allowed", 'state': False}, status=405)
+        return JsonResponse({
+            'state': False,
+            'error': '不支持的请求方法'
+        })
 
 
 @csrf_exempt
@@ -134,6 +183,168 @@ def user_change_password(request):
         return JsonResponse({"success": "OPTIONS operation"}, status=200)
     else:
         return JsonResponse({"error": "Method not allowed", 'state': False}, status=405)
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def add_favorite(request):
+    try:
+        data = json.loads(request.body)
+        print("收到的数据:", data)
+        user_id = data.get('user_id')
+        product_id = data.get('product_id')
+        platform_id = data.get('platform_id')
+        price = data.get('price')
+        note = data.get('note', '')
+        link = data.get('link', '')
+
+        # 获取用户
+        user = OnlineUser.objects.get(user_id=user_id)
+
+        # 获取或创建 Platform
+        platform, _ = Platform.objects.get_or_create(
+            platform_id=platform_id,
+            defaults={
+                'platform_name': data.get('article_mall', '未知平台'),
+                'website_url': data.get('link', '#')
+            }
+        )
+
+        # 获取或创建 Product
+        product, _ = Product.objects.get_or_create(
+            product_id=product_id,
+            defaults={
+                'name': data.get('article_title', '未知商品'),
+                'description': '',
+                'image_url': data.get('article_pic', ''),
+                'link': data.get('link', '')
+            }
+        )
+
+        # 检查是否已收藏
+        if Favorite.objects.filter(user=user, product=product).exists():
+            return JsonResponse({
+                'status': 'error',
+                'message': '该商品已在收藏夹中'
+            })
+
+        # 创建收藏记录
+        favorite = Favorite.objects.create(
+            user=user,
+            product=product,
+            platform=platform,
+            price_at_favorite=price,
+            note=note,
+            link=link
+        )
+
+        # 创建价格历史记录
+        PriceHistory.objects.create(
+            product=product,
+            platform=platform,
+            price=price
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'message': '收藏成功',
+            'data': {
+                'favorite_id': favorite.favorite_id,
+                'added_at': favorite.added_at
+            }
+        })
+
+    except OnlineUser.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': '用户不存在'
+        })
+    except Exception as e:
+        print("错误详情:", str(e))  # 打印具体错误信息
+        return JsonResponse({
+            'status': 'error',
+            'message': f'收藏失败: {str(e)}'
+        })
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def remove_favorite(request):
+    try:
+        data = json.loads(request.body)
+        user_id = data.get('user_id')
+        product_id = data.get('product_id')
+
+        favorite = Favorite.objects.get(
+            user__user_id=user_id,
+            product__product_id=product_id
+        )
+        favorite.delete()
+
+        return JsonResponse({
+            'status': 'success',
+            'message': '已从收藏夹中移除'
+        })
+
+    except Favorite.DoesNotExist:
+        return JsonResponse({
+            'status': 'error',
+            'message': '该商品未在收藏夹中'
+        })
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        })
+
+@require_http_methods(["GET"])
+def get_favorites(request):
+    try:
+        user_id = request.GET.get('user_id')
+        favorites = Favorite.objects.filter(user__user_id=user_id).select_related('product', 'platform')
+        
+        favorites_data = []
+        for fav in favorites:
+            favorites_data.append({
+                'favorite_id': fav.favorite_id,
+                'product_id': fav.product.product_id,
+                'link': fav.product.link,
+                'product_name': fav.product.name,
+                'product_image': fav.product.image_url,
+                'platform_name': fav.platform.platform_name,
+                'price_at_favorite': str(fav.price_at_favorite),
+                'current_price': str(fav.product.price_history.latest('timestamp').price),
+                'added_at': fav.added_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'note': fav.note
+            })
+
+        return JsonResponse({
+            'status': 'success',
+            'data': favorites_data
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        })
+
+# 添加一个装饰器用于验证 token
+def token_required(view_func):
+    def wrapper(request, *args, **kwargs):
+        token = request.headers.get('Authorization')
+        if not token:
+            return JsonResponse({'error': 'Token is missing'}, status=401)
+        
+        try:
+            payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+            request.user_id = payload['user_id']  # 将用户ID添加到request对象中
+        except jwt.ExpiredSignatureError:
+            return JsonResponse({'error': 'Token has expired'}, status=401)
+        except jwt.InvalidTokenError:
+            return JsonResponse({'error': 'Invalid token'}, status=401)
+            
+        return view_func(request, *args, **kwargs)
+    return wrapper
 
 
 

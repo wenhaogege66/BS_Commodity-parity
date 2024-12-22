@@ -16,7 +16,7 @@ import {
 } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import axios, { AxiosError } from "axios";
+import axios from "axios";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import HandChainrityIcon from "../../component/HandChainrityIcon";
@@ -158,51 +158,28 @@ export default function SignUp() {
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
-    let name = data.get("name") as string;
-    let phone_num = data.get("phone_num") as string;
-    let email = data.get("email") as string;
-    let password = data.get("password") as string;
-
-    if (!validateInputs()) {
-      return;
-    }
-
+    
     try {
-      const config = {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      };
+      const response = await axiosInstance.post('/user/sign_up/', {
+        user_name: data.get('username'),
+        email: data.get('email'),
+        password: data.get('password'),
+        phone_num: data.get('phone')
+      });
 
-      const requestData = {
-        user_name: name,
-        phone_num: phone_num,
-        email: email,
-        password: password,
-      };
-
-      const res = await axiosInstance.post("/user/sign_up/", requestData, config);
-
-      if (res.data.status === 'error') {
-        // 处理不同类型的错误
-        if (res.data.message.includes('用户名已存在')) {
-          setNameError(true);
-          setNameErrorMessage('用户名已被注册');
-        } else if (res.data.message.includes('邮箱已存在')) {
-          setEmailError(true);
-          setEmailErrorMessage('邮箱已被注册');
-        } else if (res.data.message.includes('手机号已存在')) {
-          setAddressError(true);
-          setAddressErrorMessage('手机号已被注册');
-        }
-        return;
+      if (response.data.state) {
+        // 保存完整的用户信息到 localStorage
+        localStorage.setItem('userInfo', JSON.stringify(response.data.userInfo));
+        
+        // 设置 axios 默认 headers
+        axios.defaults.headers.common['Authorization'] = response.data.userInfo.token;
+        
+        // 触发自定义事件
+        window.dispatchEvent(new Event('userInfoUpdate'));
+        
+        navigate('/', { state: { from: 'register', success: true } });
       }
-
-      localStorage.setItem("userInfo", JSON.stringify(res.data));
-      navigate('/', { state: { from: 'register', success: true } });
-      
-    } catch (error: unknown) {
-      const err = error as AxiosError<{ message: string }>;
+    } catch (err: any) {
       console.error('Registration error:', err);
       // 显示一般错误消息
       setNameError(true);

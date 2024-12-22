@@ -1,339 +1,410 @@
-import AppAppBar from '../component/AppAppBar';
-import React, { useState } from 'react';
-import { CampaignType } from '../types/interfaces';
-import { fetchUserCampaigns } from '../actions/campaign';
-import { Card, CardContent, Typography, Box ,Container, CssBaseline, Divider, List, ListItem, ListItemButton, ListItemText, CardMedia,  styled, Avatar, AvatarGroup, Button, Paper, TextField, Tooltip, AppBar} from '@mui/material';
-import Grid from '@mui/material/Grid2';
-import '../styles/user.css';  // 确保路径正确
-import Application from '../component/application';
-import Applications from '../component/applications';
-import { useNavigate } from 'react-router-dom';
+import axios from "axios";
+import { useEffect, useState } from "react";
 
-
-const SyledCard = styled(Card)(({ theme }) => ({
-  display: 'flex',
-  flexDirection: 'column',
-  padding: 0,
-  height: '100%',
-  backgroundColor: theme.palette.background.paper,
-  '&:hover': {
-    backgroundColor: 'transparent',
-    cursor: 'pointer',
-  },
-  '&:focus-visible': {
-    outline: '3px solid',
-    outlineColor: 'hsla(210, 98%, 48%, 0.5)',
-    outlineOffset: '2px',
-  },
-}));
-
-const SyledCardContent = styled(CardContent)({
-  display: 'flex',
-  flexDirection: 'column',
-  gap: 4,
-  padding: 16,
-  flexGrow: 1,
-  '&:last-child': {
-    paddingBottom: 16,
-  },
-});
-
-const StyledTypography = styled(Typography)({
-  display: '-webkit-box',
-  WebkitBoxOrient: 'vertical',
-  WebkitLineClamp: 2,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-});
-
-function Author({ authors }: { authors: { name: string; avatar: string }[] }) {
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: 'row',
-        gap: 2,
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '16px',
-      }}
-    >
-      <Box
-        sx={{ display: 'flex', flexDirection: 'row', gap: 1, alignItems: 'center' }}
-      >
-        <AvatarGroup max={3}>
-          {authors.map((author, index) => (
-            <Avatar
-              key={index}
-              alt={author.name}
-              src={author.avatar}
-              sx={{ width: 24, height: 24 }}
-            />
-          ))}
-        </AvatarGroup>
-        <Typography variant="caption">
-          {authors.map((author) => author.name).join(', ')}
-        </Typography>
-      </Box>
-      <Typography variant="caption">July 14, 2021</Typography>
-    </Box>
-  );
-}
+import {
+  Avatar,
+  Box,
+  Card,
+  CardContent,
+  Chip,
+  Container,
+  CssBaseline,
+  Divider,
+  List,
+  ListItem,
+  ListItemButton,
+  ListItemText,
+  Paper,
+  Tooltip,
+  Typography,
+  CardMedia,
+  Button
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import Application from "../component/application";
+import Applications from "../component/applications";
+import "../styles/user.css"; // 确保路径正确
+// import SimpleCollapse from '../component/try';
+import "./user.css";
+import FavoriteIcon from '@mui/icons-material/Favorite';
 
 export default function User() {
-  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-  const [campaigns, setCampaigns] = useState<CampaignType[]>([]);
+  const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
 
-  const [selectedIndex, setSelectedIndex] = useState("我参加的筹款活动");
-  const [btnlist, setBtnlist] = useState(userInfo.role === 'admin' ? ["我参加的筹款活动", "我发起的筹款活动", '管理申请'] :(userInfo.role === 'beneficiary' ? ['我参加的筹款活动', '我发起的筹款活动']:['我参加的筹款活动', '我发起的筹款活动',  "申请成为受益人"]) );
-  // if (userInfo.role === 'admin') {
-  //   setButlist(['我参加的筹款活动', '我发起的筹款活动',  '管理申请']);
-  // }
-
- 
-  const navigate = useNavigate();
-  // const address = localStorage.getItem('account') || null;
-  // const name = localStorage.getItem('name') || null;
-  // const email = localStorage.getItem('email') || null;
-
-  const [focusedCardIndex, setFocusedCardIndex] = React.useState<number | null>(
-    null,
+  const [selectedIndex, setSelectedIndex] = useState("已收藏的商品");
+  const btnlist = (
+    userInfo.role === "admin"
+      ? ["消息列表", "已收藏的商品", "我上架的", "商家申请审批"]
+      : userInfo.role === "beneficiary"
+        ? ["消息列表", "购物车", "已收藏的商品", "我上架的"]
+        : [
+            "消息列表",
+            "购物车",
+            "已收藏的商品",
+            "我上架的",
+            "申请成为商家",
+          ]
   );
 
-  
-  React.useEffect(() => {
-    if(selectedIndex === "我参加的筹款活动") {
-      if(userInfo && userInfo.address)
-      {
-        fetchUserCampaigns(userInfo.address, setCampaigns);
+  const navigate = useNavigate();
+
+  const [favorites, setFavorites] = useState([]);
+
+  const fetchFavorites = async () => {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    if (!userInfo.user_id) return;
+
+    try {
+      const response = await axios.get(`http://127.0.0.1:8000/user/get_favorites/?user_id=${userInfo.user_id}`);
+      if (response.data.status === 'success') {
+        setFavorites(response.data.data);
       }
-    } else if(selectedIndex === "我发起的筹款活动") {
-      // fetchUserCampaigns(userInfo.address, setCampaigns, true);
-      // 补充发起的筹款活动列表获取
-      setCampaigns([]);
+    } catch (error) {
+      console.error('获取收藏列表失败:', error);
     }
-  }, [userInfo, selectedIndex]);
-
-  const handleFocus = (index: number) => {
-    setFocusedCardIndex(index);
   };
 
-  const handleBlur = () => {
-    setFocusedCardIndex(null);
-  };
+  useEffect(() => {
+    if (selectedIndex === "已收藏的商品") {
+      fetchFavorites();
+    }
+  }, [selectedIndex]);
 
-  const handleClick = () => {
-    console.info('You clicked the filter chip.');
-  };
+  const handleUnfavorite = async (productId: number) => {
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    if (!userInfo.user_id) return;
 
-  const cardData = [
-    {
-      img: 'https://picsum.photos/800/450?random=1',
-      tag: 'Engineering',
-      title: 'Revolutionizing software development with cutting-edge tools',
-      description:
-        'Our latest engineering tools are designed to streamline workflows and boost productivity. Discover how these innovations are transforming the software development landscape.',
-      authors: [
-        { name: 'Remy Sharp', avatar: '/static/images/avatar/1.jpg' },
-        { name: 'Travis Howard', avatar: '/static/images/avatar/2.jpg' },
-      ],
-    },
-    {
-      img: 'https://picsum.photos/800/450?random=2',
-      tag: 'Product',
-      title: 'Innovative product features that drive success',
-      description:
-        'Explore the key features of our latest product release that are helping businesses achieve their goals. From user-friendly interfaces to robust functionality, learn why our product stands out.',
-      authors: [{ name: 'Erica Johns', avatar: '/static/images/avatar/6.jpg' }],
-    },
-    {
-      img: 'https://picsum.photos/800/450?random=3',
-      tag: 'Design',
-      title: 'Designing for the future: trends and insights',
-      description:
-        'Stay ahead of the curve with the latest design trends and insights. Our design team shares their expertise on creating intuitive and visually stunning user experiences.',
-      authors: [{ name: 'Kate Morrison', avatar: '/static/images/avatar/7.jpg' }],
-    },
-    {
-      img: 'https://picsum.photos/800/450?random=4',
-      tag: 'Company',
-      title: "Our company's journey: milestones and achievements",
-      description:
-        "Take a look at our company's journey and the milestones we've achieved along the way. From humble beginnings to industry leader, discover our story of growth and success.",
-      authors: [{ name: 'Cindy Baker', avatar: '/static/images/avatar/3.jpg' }],
-    },
-    {
-      img: 'https://picsum.photos/800/450?random=45',
-      tag: 'Engineering',
-      title: 'Pioneering sustainable engineering solutions',
-      description:
-        "Learn about our commitment to sustainability and the innovative engineering solutions we're implementing to create a greener future. Discover the impact of our eco-friendly initiatives.",
-      authors: [
-        { name: 'Agnes Walker', avatar: '/static/images/avatar/4.jpg' },
-        { name: 'Trevor Henderson', avatar: '/static/images/avatar/5.jpg' },
-      ],
-    },
-    {
-      img: 'https://picsum.photos/800/450?random=6',
-      tag: 'Product',
-      title: 'Maximizing efficiency with our latest product updates',
-      description:
-        'Our recent product updates are designed to help you maximize efficiency and achieve more. Get a detailed overview of the new features and improvements that can elevate your workflow.',
-      authors: [{ name: 'Travis Howard', avatar: '/static/images/avatar/2.jpg' }],
-    },
-  ];
+    try {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': userInfo.token
+        },
+        withCredentials: true
+      };
+
+      const response = await axios.post('http://127.0.0.1:8000/user/remove_favorite/', {
+        user_id: userInfo.user_id,
+        product_id: productId
+      }, config);
+
+      if (response.data.status === 'success') {
+        // 重新获取收藏列表
+        fetchFavorites();
+      }
+    } catch (error) {
+      console.error('取消收藏失败:', error);
+    }
+  };
 
   return (
     <Container
-    maxWidth="lg"
-    component="main"
-    sx={{ display: 'flex', flexDirection: 'column', my: 16, gap: 4 }}
-  >
-    <CssBaseline enableColorScheme />
-      <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4 ,overflow:"auto",position:"relative"}}>
-        <Box sx={{ display: 'flex', flexDirection: 'column' ,width:"30%",top:0}} position="sticky">
-          <Paper sx={{ display: 'flex', flexDirection: 'column', gap: 4 ,p:4,justifySelf:"start",maxWidth:"300px"}}>
-            
-            {/* <h1>User Profile</h1>
-            <p><strong>区块链地址:</strong><br/> {userInfo.address}</p>
-            <p><strong>姓名:</strong> {userInfo.username}</p>
-            <p><strong>邮箱:</strong> {userInfo.email}</p> */}
-            <Typography variant="h6">用户信息</Typography>
-              <Tooltip title={userInfo.address} placement="top">
-            <Typography sx={{
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
-            }}><strong>区块链地址 : </strong>{userInfo.address}</Typography>
-              </Tooltip>
-            <Typography><strong>姓名 : </strong> {userInfo.username}</Typography>
-              <Tooltip title={userInfo.email} placement="top">
-            <Typography
+      maxWidth="lg"
+      component="main"
+      sx={{ display: "flex", flexDirection: "column", my: 16, gap: 4 }}
+    >
+      <CssBaseline enableColorScheme />
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "row",
+          gap: 4,
+          overflow: "auto",
+          position: "relative",
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            width: "30%",
+            gap: 4,
+          }}
+          position="sticky"
+        >
+          <Paper
+            elevation={3}
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 4,
+              p: 4,
+              justifySelf: "start",
+              maxWidth: "300px",
+            }}
+          >
+            <Box
               sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center", // This centers both horizontally
+                justifyContent: "center", // This centers both vertically
+                textAlign: "center", // Ensures the text is centered inside the chip
               }}
-            ><strong>邮箱 : </strong> {userInfo.email}</Typography>
+            >
+              <Avatar
+                src={"../../../img/user.png"}
+                alt={userInfo.username}
+                sx={{
+                  width: 80,
+                  height: 80,
+                  mb: 2,
+                  boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+                }}
+              />
+              <Chip
+                label={
+                  userInfo.role === "admin"
+                    ? "管理员"
+                    : userInfo.role === "beneficiary"
+                      ? "受益人"
+                      : userInfo.role === "third-party"
+                        ? "第三方"
+                        : "普通用户"
+                }
+                sx={{
+                  fontWeight: "bold",
+                  width: 77,
+                  height: 23,
+                  textAlign: "center", // Aligns the text inside the Chip
+                  marginTop: "-35px",
+                  zIndex: 2,
+                  color: "white",
+                  backgroundColor: "primary.main",
+                  opacity: 0.9,
+                }}
+                onClick={() => {
+                  if (userInfo.role === "third-party") {
+                    navigate("/third-party");
+                  }
+                  
+                }
+              }
+              />
+            </Box>
+            <Typography variant="h6">用户信息</Typography>
+            <Tooltip title={userInfo.address} placement="top">
+              <Typography
+                sx={{
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <strong>唯一受益地址 : </strong>
+                {userInfo.address}
+              </Typography>
+            </Tooltip>
+            <Typography>
+              <strong>姓名 : </strong> {userInfo.username}
+            </Typography>
+            <Tooltip title={userInfo.email} placement="top">
+              <Typography
+                sx={{
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <strong>邮箱 : </strong> {userInfo.email}
+              </Typography>
             </Tooltip>
             <Divider />
             <nav aria-label="secondary mailbox folders">
-                  <List>
-                    {btnlist.map((text, index) => (
-                      <ListItem disablePadding key={text}>
-                        <ListItemButton onClick={() => setSelectedIndex(text)}>
-                          <ListItemText primary={text} />
-                        </ListItemButton>
-                      </ListItem>
-                    ))}
-                  </List>
+              <List>
+                {btnlist.map((text, index) => (
+                  <ListItem disablePadding key={text}>
+                    <ListItemButton
+                      onClick={() => setSelectedIndex(text)}
+                      sx={{
+                        background:
+                          selectedIndex === text
+                            ? "linear-gradient(135deg, rgba(235, 150, 12, 0.2), rgba(255, 255, 255, 0))"
+                            : "transparent",
+                        boxShadow:
+                          selectedIndex === text
+                            ? "0 4px 8px rgba(235, 150, 12, 0.4)"
+                            : "none",
+                        borderRadius: "8px", // 添加圆角
+                        transition:
+                          "background 0.3s ease, box-shadow 0.3s ease, transform 0.2s",
+                        "&:hover": {
+                          background: "rgba(235, 150, 12, 0.2)",
+                          transform:
+                            selectedIndex === text
+                              ? "scale(1.02)"
+                              : "scale(1.05)", // 放大效果
+                          boxShadow: "0 4px 12px rgba(235, 150, 12, 0.5)", // 加强阴影效果
+                        },
+                      }}
+                    >
+                      <ListItemText
+                        primary={text}
+                        primaryTypographyProps={{
+                          fontWeight:
+                            selectedIndex === text ? "bold" : "normal", // 加粗选中文字
+                          color:
+                            selectedIndex === text
+                              ? "rgb(235, 150, 12)"
+                              : "inherit", // 改变选中文字颜色
+                        }}
+                      />
+                    </ListItemButton>
+                  </ListItem>
+                ))}
+              </List>
             </nav>
           </Paper>
         </Box>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, width:"70%" ,justifySelf:"start",alignItems:"center"}}>
-          <Card variant="outlined">
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 1,
+            width: "70%",
+            justifySelf: "start",
+            alignItems: "center",
+          }}
+        >
+          <Card variant="outlined" sx={{ width: "100%" }}>
             <CardContent>
-              {selectedIndex === "我参加的筹款活动" || selectedIndex === "我发起的筹款活动" ? (
-              
-              <Grid container columns={12} size={{xs:12,md:12}} >
-                { campaigns.length === 0 ? (
-                  <Typography variant="h6">您的列表目前为空</Typography>
-                ) : (
-              <List sx={{ width: '100%',  bgcolor: 'background.paper' }}>
-              <Grid container spacing={2} columns={12}>
-                  {campaigns.map((item, index) => (
-                      <Grid size={{ xs: 12, md: 6 }} key={index}>
-                        <SyledCard
-                          variant="outlined"
-                          onFocus={() => handleFocus(0)}
-                          onBlur={handleBlur}
-                          tabIndex={0}
-                          className={focusedCardIndex === 0 ? 'Mui-focused' : ''}
-                          onClick={() => navigate(`/root/details/:${campaigns[index].id}`)}
-                        >
-                          <CardMedia
-                            component="img"
-                            alt="green iguana"
-                            image={"https://picsum.photos/800/450?random=6"}
-                            aspect-ratio="16 / 9"
-                            sx={{
-                              borderBottom: '1px solid',
-                              borderColor: 'divider',
-                            }}
-                          />
-                          <SyledCardContent>
-
-                            <Typography gutterBottom variant="h6" component="div">
-                              {campaigns[index].title}
+              {selectedIndex === "消息列表" ? (
+                <Typography variant="h6">消息列表</Typography>
+              ) : 
+              selectedIndex === "购物车" ? (
+                <Typography variant="h6">购物车</Typography>
+              ) : 
+              selectedIndex === "已收藏的商品" ? (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                  {favorites.length > 0 ? (
+                    favorites.map((favorite: any) => (
+                      <Card 
+                        key={favorite.favorite_id}
+                        sx={{
+                          display: 'flex',
+                          p: 2,
+                          '&:hover': {
+                            boxShadow: 6,
+                            transition: 'box-shadow 0.3s ease-in-out'
+                          }
+                        }}
+                      >
+                        <CardMedia
+                          component="img"
+                          sx={{ 
+                            width: 140,
+                            height: 140,
+                            objectFit: 'cover',
+                            borderRadius: 1
+                          }}
+                          image={favorite.product_image}
+                          alt={favorite.product_name}
+                        />
+                        <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, ml: 2 }}>
+                          <CardContent sx={{ flex: '1 0 auto', p: 0 }}>
+                            <Typography variant="h6" component="div" gutterBottom>
+                              {favorite.product_name}
                             </Typography>
-                            <Typography gutterBottom variant="caption" component="div">
-                            {campaigns[index].description}
-                          </Typography >
-                            <StyledTypography variant="body2" color="text.secondary" gutterBottom >
-                              {campaigns[index].details}
-                            </StyledTypography>
-                          </SyledCardContent>
-                          <Author authors={
-                            [
-                              {
-                                name:campaigns[index].beneficiary,
-                                avatar:"/static/images/avatar/2.jpg"}
-                            ]} />
-                        </SyledCard>
-                      </Grid>
-
-                  ))}
-              </Grid>
-              </List>
-                )}
-              {/* <Grid size={{ xs: 12, md: 6 }}>
-                <SyledCard
-                  variant="outlined"
-                  onFocus={() => handleFocus(0)}
-                  onBlur={handleBlur}
-                  tabIndex={0}
-                  className={focusedCardIndex === 0 ? 'Mui-focused' : ''}
-                >
-                  <CardMedia
-                    component="img"
-                    alt="green iguana"
-                    image={cardData[0].img}
-                    aspect-ratio="16 / 9"
-                    sx={{
-                      borderBottom: '1px solid',
-                      borderColor: 'divider',
-                    }}
-                  />
-                  <SyledCardContent>
-                    <Typography gutterBottom variant="caption" component="div">
-                      {cardData[0].tag}
-                    </Typography>
-                    <Typography gutterBottom variant="h6" component="div">
-                      {cardData[0].title}
-                    </Typography>
-                    <StyledTypography variant="body2" color="text.secondary" gutterBottom>
-                      {cardData[0].description}
-                    </StyledTypography>
-                  </SyledCardContent>
-                  <Author authors={cardData[0].authors} />
-                </SyledCard>
-              </Grid> */}
-              
-              </Grid>
-
+                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                              <Chip 
+                                label={favorite.platform_name}
+                                size="small"
+                                color="primary"
+                                sx={{ mr: 1 }}
+                              />
+                              <Typography variant="caption" color="text.secondary">
+                                收藏于 {new Date(favorite.added_at).toLocaleDateString()}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                              <Box>
+                                <Typography variant="body2" color="text.secondary">
+                                  收藏时价格
+                                </Typography>
+                                <Typography variant="h6" color="primary">
+                                  ¥{favorite.price_at_favorite}
+                                </Typography>
+                              </Box>
+                              <Box>
+                                <Typography variant="body2" color="text.secondary">
+                                  当前价格
+                                </Typography>
+                                <Typography 
+                                  variant="h6" 
+                                  color={Number(favorite.current_price) < Number(favorite.price_at_favorite) ? "error" : "success"}
+                                >
+                                  ¥{favorite.current_price}
+                                </Typography>
+                              </Box>
+                              {Number(favorite.current_price) < Number(favorite.price_at_favorite) && (
+                                <Chip 
+                                  label={`降价 ¥${(Number(favorite.price_at_favorite) - Number(favorite.current_price)).toFixed(2)}`}
+                                  color="error"
+                                  size="small"
+                                />
+                              )}
+                            </Box>
+                          </CardContent>
+                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                            <Button
+                              variant="outlined"
+                              color="primary"
+                              size="small"
+                              onClick={() => console.log("favorite",favorite)}
+                              sx={{ mr: 1 }}
+                            >
+                              查看商品
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              color="error"
+                              size="small"
+                              onClick={() => handleUnfavorite(favorite.product_id)}
+                              startIcon={<FavoriteIcon />}
+                            >
+                              取消收藏
+                            </Button>
+                          </Box>
+                        </Box>
+                      </Card>
+                    ))
+                  ) : (
+                    <Box 
+                      sx={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        alignItems: 'center',
+                        py: 4 
+                      }}
+                    >
+                      <Typography variant="h6" color="text.secondary" gutterBottom>
+                        暂无收藏商品
+                      </Typography>
+                      <Button 
+                        variant="contained" 
+                        color="primary"
+                        onClick={() => navigate('/root/campaign')}
+                        sx={{ mt: 2 }}
+                      >
+                        去逛逛
+                      </Button>
+                    </Box>
+                  )}
+                </Box>
+              ) : 
+                selectedIndex === "我上架的" ? (
+                  <Typography variant="h6">我上架的</Typography>
+              ) : selectedIndex === "申请成为商家" ? (
+                <Application />
               ) : (
-                selectedIndex === "申请成为受益人" ? (<Application />) : (<Applications />)
+                <Applications />
               )}
             </CardContent>
           </Card>
         </Box>
-        
       </Box>
     </Container>
   );
 }
-function setFocusedCardIndex(arg0: null) {
-  throw new Error('Function not implemented.');
-}
-

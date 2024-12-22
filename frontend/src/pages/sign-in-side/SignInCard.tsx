@@ -13,7 +13,7 @@ import * as React from 'react';
 
 import { styled } from '@mui/material/styles';
 
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FacebookIcon, GoogleIcon, SitemarkIcon } from './CustomIcons';
 import ForgotPassword from './ForgotPassword';
@@ -62,35 +62,23 @@ export default function SignInCard() {
     let password = data.get('password');
     
     try {
-      const config = {
-        headers: {
-          'Content-Type': "application/json",
-        },
-      };
+      const response = await axiosInstance.post('/user/sign_in/', {
+        user_name: username,
+        password: password,
+      });
 
-      const res = await axiosInstance.post(
-        '/user/sign_in/',
-        {user_name:username, password:password },
-        config
-      );
-      
-      if (res.data.status === 'error') {
-        // 处理错误情况
-        if (res.data.message.includes('用户不存在')) {
-          setEmailError(true);
-          setEmailErrorMessage('用户不存在');
-        } else if (res.data.message.includes('密码错误')) {
-          setPasswordError(true);
-          setPasswordErrorMessage('密码错误');
-        }
-        return;
+      if (response.data.state) {
+        localStorage.setItem('userInfo', JSON.stringify(response.data.userInfo));
+        axios.defaults.headers.common['Authorization'] = response.data.userInfo.token;
+        
+        window.dispatchEvent(new Event('userInfoUpdate'));
+        
+        navigate('/', { state: { from: 'login', success: true } });
+      } else {
+        setPasswordError(true);
+        setPasswordErrorMessage(response.data.error || '登录失败');
       }
-
-      localStorage.setItem('userInfo', JSON.stringify(res.data));
-      navigate('/', { state: { from: 'login', success: true } });
-      
-    } catch (error: unknown) {
-      const err = error as AxiosError<{ message: string }>;
+    } catch (err: any) {
       setPasswordError(true);
       setPasswordErrorMessage('登录失败，请稍后重试');
       console.error('Login error:', err);
@@ -144,21 +132,19 @@ export default function SignInCard() {
         sx={{ display: 'flex', flexDirection: 'column', width: '100%', gap: 2 }}
       >
         <FormControl>
-          <FormLabel htmlFor="email">用户名或邮箱</FormLabel>
+          <FormLabel htmlFor="email">用户名/邮箱</FormLabel>
           <TextField
             error={emailError}
             helperText={emailErrorMessage}
             id="email"
-            type="email"
             name="email"
-            placeholder="your@email.com or nickname"
+            placeholder="用户名或邮箱"
             autoComplete="email"
             autoFocus
             required
             fullWidth
             variant="outlined"
             color={emailError ? 'error' : 'primary'}
-            sx={{ ariaLabel: 'email' }}
           />
         </FormControl>
         <FormControl>

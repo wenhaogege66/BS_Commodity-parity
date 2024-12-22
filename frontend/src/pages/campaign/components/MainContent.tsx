@@ -9,6 +9,7 @@ import {
   ListItemButton,
 } from "@mui/material";
 import Alert from "@mui/material/Alert";
+import { useNavigate } from 'react-router-dom';
 import Backdrop from "@mui/material/Backdrop";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
@@ -34,6 +35,8 @@ import {
 } from "react";
 import "./MainContent.css"
 import { useLocation } from 'react-router-dom';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 
 import { Commodity } from "../../../types/interfaces";
 
@@ -287,6 +290,7 @@ export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
 });
 
 export default function MainContent() {
+  const navigate = useNavigate(); // 初始化导航钩子
   const [open, setOpen] = React.useState(false);
   const [detail, setDetail] = React.useState(false);
   const [curdetail, setCurdetail] = React.useState<Commodity | null>(null);
@@ -295,6 +299,7 @@ export default function MainContent() {
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [registerSuccess, setRegisterSuccess] = useState(false);
   const location = useLocation();
+  const [favorites, setFavorites] = useState<Set<number>>(new Set());
 
   const handleIconClick = () => {
     console.log("点击");
@@ -549,6 +554,77 @@ export default function MainContent() {
       setTimeout(() => setRegisterSuccess(false), 6000);
     }
   }, [location]);
+
+  const handleFavorite = async (event: React.MouseEvent, commodity: Commodity) => {
+    event.stopPropagation();
+    
+    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    if (!userInfo.user_id) {
+      navigate('/signIn');
+      return;
+    }
+
+    try {
+      const config = {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': userInfo.token
+        },
+        withCredentials: true
+      };
+      console.log("favorites:", favorites);
+      console.log("commodity:", commodity);
+      if (favorites.has(commodity.wiki_id)) {
+        const response = await axios.post('http://127.0.0.1:8000/user/remove_favorite/', {
+          user_id: userInfo.user_id,
+          product_id: commodity.wiki_id
+        }, config);
+        if (response.data.status === 'success') {
+          const newFavorites = new Set(favorites);
+          newFavorites.delete(commodity.wiki_id);
+          setFavorites(newFavorites);
+        }
+      } else {
+        const response = await axios.post('http://127.0.0.1:8000/user/add_favorite/', {
+          user_id: userInfo.user_id,
+          product_id: commodity.wiki_id,
+          platform_id: commodity.mall_id,
+          price: commodity.article_price,
+          article_mall: commodity.article_mall,
+          article_title: commodity.article_title,
+          article_pic: commodity.article_pic,
+          link: commodity.link
+        }, config);
+        if (response.data.status === 'success') {
+          const newFavorites = new Set(favorites);
+          newFavorites.add(commodity.wiki_id);
+          setFavorites(newFavorites);
+        }
+      }
+    } catch (error) {
+      console.error('收藏操作失败:', error);
+    }
+  };
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      if (!userInfo.user_id) return;
+
+      try {
+        const response = await axios.get(`http://127.0.0.1:8000/user/get_favorites/?user_id=${userInfo.user_id}`);
+        if (response.data.status === 'success') {
+          const favSet = new Set(response.data.data.map((fav: any) => Number(fav.product_id)));
+          setFavorites(favSet as Set<number>);
+        }
+      } catch (error) {
+        console.error('获取收藏列表失败:', error);
+      }
+    };
+
+    fetchFavorites();
+  }, []);
 
   return (
     <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -822,7 +898,7 @@ export default function MainContent() {
                     variant="outlined"
                     color="primary"
                     size="small"
-                    sx={{ textTransform: "none", fontWeight: "bold" }}
+                    sx={{ textTransform: "none", fontWeight: "bold",marginBottom: 1}}
                     onClick={handleClickDetail(commodity)}
                   >
                     价格趋势
@@ -844,6 +920,14 @@ export default function MainContent() {
                     低于常卖价
                   </Button>
                 )}
+            </Box>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pb: 1 }}>
+              <IconButton 
+                onClick={(e) => handleFavorite(e, commodity)}
+                color={favorites.has(commodity.wiki_id) ? "primary" : "default"}
+              >
+                {favorites.has(commodity.wiki_id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+              </IconButton>
             </Box>
           </Card>
         ))

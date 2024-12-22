@@ -1,6 +1,6 @@
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded';
 import MenuIcon from '@mui/icons-material/Menu';
-import { Tooltip, Typography } from '@mui/material';
+import { Typography } from '@mui/material';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -17,6 +17,7 @@ import HandChainrityIcon from './HandChainrityIcon';
 // import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import { Menu } from '@mui/material';
 import userImage from '../img/user.png';
+import { useEffect } from 'react';
 
 const StyledToolbar = styled(Toolbar)(({ theme }) => ({
   display: 'flex',
@@ -37,12 +38,23 @@ export default function AppAppBar() {
   const [open, setOpen] = React.useState(false);
   const navigate = useNavigate(); // 初始化导航钩子
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
-  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
-  const isLoggedIn = Boolean(userInfo.username); // 检查是否登录
+  const [userInfo, setUserInfo] = React.useState(JSON.parse(localStorage.getItem('userInfo') || '{}'));
+  const isLoggedIn = Boolean(userInfo.user_name); // 检查是否登录
 
-  // localStorage.clear()
-  console.log("kk123:",userInfo);
-  
+  // 监听 localStorage 变化
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const newUserInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      setUserInfo(newUserInfo);
+    };
+
+    // 添加自定义事件监听器
+    window.addEventListener('userInfoUpdate', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('userInfoUpdate', handleStorageChange);
+    };
+  }, []);
 
   const toggleDrawer = (newOpen: boolean) => () => {
     setOpen(newOpen);
@@ -74,8 +86,9 @@ export default function AppAppBar() {
   // 退出登录逻辑
   const handleLogout = () => {
     localStorage.removeItem('userInfo'); // 清除用户信息
+    setUserInfo({});
     handleMenuClose();
-    window.location.reload(); // 刷新页面
+    navigate('/');
   };
 
   return (
@@ -108,13 +121,11 @@ export default function AppAppBar() {
           >
             {isLoggedIn ? (
               <>
-                <img src={userImage} alt="描述文字" style={{ width: '30px', height: 'auto' }} />
+                <img src={userImage} alt="用户头像" style={{ width: '30px', height: 'auto' }} />
                 <Button onClick={handleMenuOpen} size="small" >
-                  
                   <Typography variant="body1" >
-                    {userInfo.username || '未填写姓名'}
+                    {userInfo.user_name || '未填写姓名'}
                   </Typography>
-                  
                 </Button>
 
                 {/* 菜单组件 */}

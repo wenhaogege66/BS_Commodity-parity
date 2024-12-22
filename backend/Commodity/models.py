@@ -5,6 +5,7 @@ from datetime import datetime
 # 用户模型
 class OnlineUser(models.Model):
     user_id = models.AutoField(primary_key=True)
+    role = models.CharField(max_length=20, null=False)
     user_name = models.CharField(max_length=30, unique=True, null=False)
     password = models.CharField(max_length=128, null=False)  # 增加字段长度用于存储加密后的密码
     email = models.EmailField(unique=True, null=False)
@@ -30,6 +31,7 @@ class Product(models.Model):
     description = models.TextField(null=True, blank=True)
     category = models.CharField(max_length=50, null=True)  # 商品类别
     image_url = models.URLField(max_length=300, null=True, blank=True)
+    link = models.URLField(max_length=300, null=True, blank=True)
 
 # 价格历史记录模型
 class PriceHistory(models.Model):
@@ -45,6 +47,9 @@ class Favorite(models.Model):
     user = models.ForeignKey(OnlineUser, on_delete=models.CASCADE, related_name="favorites")
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="favorited_by")
     added_at = models.DateTimeField(auto_now_add=True)  # 收藏时间
+    price_at_favorite = models.DecimalField(max_digits=10, decimal_places=2, null=True)  # 收藏时的价格
+    platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name="favorites", null=True)  # 收藏时的平台
+    note = models.TextField(null=True, blank=True)  # 用户备注
 
 # 降价提醒模型
 class PriceAlert(models.Model):
