@@ -27,6 +27,7 @@ import "../styles/user.css"; // 确保路径正确
 // import SimpleCollapse from '../component/try';
 import "./user.css";
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import { backendAxios } from '../config/api.config';
 
 export default function User() {
   const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
@@ -55,7 +56,7 @@ export default function User() {
     if (!userInfo.user_id) return;
 
     try {
-      const response = await axios.get(`http://127.0.0.1:8000/user/get_favorites/?user_id=${userInfo.user_id}`);
+      const response = await backendAxios.get(`/user/get_favorites/?user_id=${userInfo.user_id}`);
       if (response.data.status === 'success') {
         setFavorites(response.data.data);
       }
@@ -75,22 +76,12 @@ export default function User() {
     if (!userInfo.user_id) return;
 
     try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': userInfo.token
-        },
-        withCredentials: true
-      };
-
-      const response = await axios.post('http://127.0.0.1:8000/user/remove_favorite/', {
+      const response = await backendAxios.post('/user/remove_favorite/', {
         user_id: userInfo.user_id,
         product_id: productId
-      }, config);
+      });
 
       if (response.data.status === 'success') {
-        // 重新获取收藏列表
         fetchFavorites();
       }
     } catch (error) {

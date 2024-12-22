@@ -1,6 +1,6 @@
-import { web3, HandChainrityContract } from '../utils/contracts';
+import axios from 'axios';
 import { CampaignType, Status } from '../types/interfaces';
-import axios, { AxiosError, AxiosResponse } from 'axios';
+import { HandChainrityContract, web3 } from '../utils/contracts';
 const axiosInstance = axios.create({
   baseURL: 'http://localhost:8888', // 设置基础 URL
   timeout: 10000,                    // 可选：请求超时时间

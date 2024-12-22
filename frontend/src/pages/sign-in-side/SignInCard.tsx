@@ -13,14 +13,11 @@ import * as React from 'react';
 
 import { styled } from '@mui/material/styles';
 
-import axios from 'axios';
+import { backendAxios } from '../../config/api.config';
 import { useNavigate } from 'react-router-dom';
 import { FacebookIcon, GoogleIcon, SitemarkIcon } from './CustomIcons';
 import ForgotPassword from './ForgotPassword';
-const axiosInstance = axios.create({
-  baseURL: 'http://127.0.0.1:8000', // 设置基础 URL
-  timeout: 10000,                    // 可选：请求超时时间
-});
+import axios from 'axios';
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: 'flex',
@@ -62,7 +59,7 @@ export default function SignInCard() {
     let password = data.get('password');
     
     try {
-      const response = await axiosInstance.post('/user/sign_in/', {
+      const response = await backendAxios.post('/user/sign_in/', {
         user_name: username,
         password: password,
       });

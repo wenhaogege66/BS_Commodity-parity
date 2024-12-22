@@ -16,17 +16,12 @@ import {
 } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
-import axios from "axios";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import HandChainrityIcon from "../../component/HandChainrityIcon";
+import { backendAxios } from '../../config/api.config';
 import TemplateFrame from "./TemplateFrame";
 import getSignUpTheme from "./theme/getSignUpTheme";
-
-const axiosInstance = axios.create({
-  baseURL: "http://127.0.0.1:8000", // 设置基础 URL
-  timeout: 10000, // 可选：请求超时时间
-});
 
 const Card = styled(MuiCard)(({ theme }) => ({
   display: "flex",
@@ -160,30 +155,24 @@ export default function SignUp() {
     const data = new FormData(event.currentTarget);
     
     try {
-      const response = await axiosInstance.post('/user/sign_up/', {
-        user_name: data.get('username'),
+      const response = await backendAxios.post('/user/sign_up/', {
+        user_name: data.get('name'),
         email: data.get('email'),
         password: data.get('password'),
-        phone_num: data.get('phone')
+        phone_num: data.get('phone_num'),
+        role: 'user'
       });
 
       if (response.data.state) {
-        // 保存完整的用户信息到 localStorage
         localStorage.setItem('userInfo', JSON.stringify(response.data.userInfo));
-        
-        // 设置 axios 默认 headers
-        axios.defaults.headers.common['Authorization'] = response.data.userInfo.token;
-        
-        // 触发自定义事件
+        backendAxios.defaults.headers.common['Authorization'] = response.data.userInfo.token;
         window.dispatchEvent(new Event('userInfoUpdate'));
-        
         navigate('/', { state: { from: 'register', success: true } });
       }
     } catch (err: any) {
       console.error('Registration error:', err);
-      // 显示一般错误消息
       setNameError(true);
-      setNameErrorMessage('注册失败，请稍后重试');
+      setNameErrorMessage(err.response?.data?.error || '注册失败，请稍后重试');
     }
   };
 
@@ -247,15 +236,15 @@ export default function SignUp() {
                     fullWidth
                     id="name"
                     placeholder="张爱心"
-                    error={addressError}
+                    error={nameError}
                     helperText={nameErrorMessage}
-                    color={addressError ? "error" : "primary"}
+                    color={nameError ? "error" : "primary"}
                   />
                 </FormControl>
                 <FormControl>
                   <FormLabel htmlFor="phone_num">手机号</FormLabel>
                   <TextField
-                    autoComplete="name"
+                    autoComplete="tel"
                     name="phone_num"
                     required
                     fullWidth

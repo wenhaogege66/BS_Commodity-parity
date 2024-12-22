@@ -37,6 +37,8 @@ import "./MainContent.css"
 import { useLocation } from 'react-router-dom';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import { API_CONFIG } from '../../../config/api.config';
+import { backendAxios } from '../../../config/api.config';
 
 import { Commodity } from "../../../types/interfaces";
 
@@ -52,14 +54,10 @@ interface SearchProps {
  * @returns {string} 转换后的 HTTP URL，例如 "http://127.0.0.1/pricehis/price_trend_c46e3dad8500b93eb82da62bad818f17.png"
  */
 function convertToHttpUrl(localPath: string) {
-  // 定义本地路径的关键目录标识（映射路径起始位置）
   const keyDir = "pricehis";
-  const baseUrl = "http://127.0.0.1/pricehis/";
+  const baseUrl = `${API_CONFIG.NGINX_URL}/pricehis/`;
 
-  // 将反斜杠替换为正斜杠，确保路径格式统一
   const normalizedPath = localPath.replace(/\\/g, "/");
-
-  // 找到关键目录的位置
   const keyDirIndex = normalizedPath.indexOf(keyDir);
 
   if (keyDirIndex === -1) {
@@ -67,10 +65,7 @@ function convertToHttpUrl(localPath: string) {
     return null;
   }
 
-  // 提取从关键目录开始的相对路径
-  const relativePath = normalizedPath.substring(keyDirIndex + keyDir.length + 1); // +1 是为了去除斜杠
-
-  // 拼接完整的 HTTP URL
+  const relativePath = normalizedPath.substring(keyDirIndex + keyDir.length + 1);
   const httpUrl = `${baseUrl}${relativePath}`;
   return httpUrl;
 }
@@ -565,28 +560,18 @@ export default function MainContent() {
     }
 
     try {
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': userInfo.token
-        },
-        withCredentials: true
-      };
-      console.log("favorites:", favorites);
-      console.log("commodity:", commodity);
       if (favorites.has(commodity.wiki_id)) {
-        const response = await axios.post('http://127.0.0.1:8000/user/remove_favorite/', {
+        const response = await backendAxios.post('/user/remove_favorite/', {
           user_id: userInfo.user_id,
           product_id: commodity.wiki_id
-        }, config);
+        });
         if (response.data.status === 'success') {
           const newFavorites = new Set(favorites);
           newFavorites.delete(commodity.wiki_id);
           setFavorites(newFavorites);
         }
       } else {
-        const response = await axios.post('http://127.0.0.1:8000/user/add_favorite/', {
+        const response = await backendAxios.post('/user/add_favorite/', {
           user_id: userInfo.user_id,
           product_id: commodity.wiki_id,
           platform_id: commodity.mall_id,
@@ -595,7 +580,7 @@ export default function MainContent() {
           article_title: commodity.article_title,
           article_pic: commodity.article_pic,
           link: commodity.link
-        }, config);
+        });
         if (response.data.status === 'success') {
           const newFavorites = new Set(favorites);
           newFavorites.add(commodity.wiki_id);
@@ -613,7 +598,7 @@ export default function MainContent() {
       if (!userInfo.user_id) return;
 
       try {
-        const response = await axios.get(`http://127.0.0.1:8000/user/get_favorites/?user_id=${userInfo.user_id}`);
+        const response = await backendAxios.get(`/user/get_favorites/?user_id=${userInfo.user_id}`);
         if (response.data.status === 'success') {
           const favSet = new Set(response.data.data.map((fav: any) => Number(fav.product_id)));
           setFavorites(favSet as Set<number>);
