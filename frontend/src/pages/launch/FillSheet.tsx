@@ -29,7 +29,7 @@ export default function FillSheet({onHandleAddress,rootFormData,setState}:{onHan
   return (
     <React.Fragment>
       <Typography variant="h6" gutterBottom >
-        填写筹款活动信息
+        填写商品相关信息
       </Typography>
       <Grid container spacing={3} >
         <Grid item xs={12} sm={6}>
@@ -37,7 +37,7 @@ export default function FillSheet({onHandleAddress,rootFormData,setState}:{onHan
             required
             id="title"
             name="title"
-            label="活动标题"
+            label="商品标题"
             fullWidth
             autoComplete="title"
             onChange={handleChange}
@@ -64,7 +64,7 @@ export default function FillSheet({onHandleAddress,rootFormData,setState}:{onHan
             id="description"
             name="description"
             // label="Description"
-            label="活动概述"
+            label="商品概述"
             fullWidth
             autoComplete="description"
             onChange={handleChange}
@@ -78,7 +78,7 @@ export default function FillSheet({onHandleAddress,rootFormData,setState}:{onHan
             id="details"
             name="details"
             // label="Details"
-            label="活动具体详情"
+            label="商品具体详情"
             type="text"
             fullWidth
             autoComplete="details"
@@ -94,7 +94,7 @@ export default function FillSheet({onHandleAddress,rootFormData,setState}:{onHan
             required
             id="target"
             name="target"
-            label="目标筹款金额"
+            label="目标商品金额"
             fullWidth
             type="number"
             autoComplete="target"

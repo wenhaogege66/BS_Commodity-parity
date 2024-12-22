@@ -105,7 +105,7 @@ export default function AppAppBar() {
                 商品列表
               </Button>
               <Button variant="text"  onClick={() => { navigate("/root/launch") }}>
-                成为商家
+                上架商品
               </Button>
               <Button variant="text"  onClick={() => { navigate("/root/about") }}>
                 关于我们

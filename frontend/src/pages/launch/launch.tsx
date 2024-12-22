@@ -1,38 +1,16 @@
 import { Button, Container, CssBaseline, Divider, Link, Paper, Step, StepLabel, Stepper, Typography } from '@mui/material';
 import { makeStyles } from '@mui/styles';
+import axios from 'axios';
 import React, { useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { OutletContext, Status } from '../../types/interfaces';
 import { HandChainrityContract, web3 } from '../../utils/contracts';
 import Check from './Check';
-import Footer from '../campaign/components/Footer';
 import FillSheet from './FillSheet';
 import Review from './Review';
-import axios from 'axios';
-import { create } from 'domain';
-import Campaign from '../campaign/Campaign';
 // 返回顶部
 
 import { useEffect } from 'react';
-
-function Copyright() {
-  return (
-    <Typography variant="body2" color="textSecondary" align="center">
-      {'Copyright © '}
-      <Link color="inherit" href="https://mui.com/">
-        Your Website
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
-
-
-
-
-
-
 
 const useStyles = makeStyles((theme:any) => ({
   appBar: {
@@ -72,7 +50,7 @@ const useStyles = makeStyles((theme:any) => ({
   },
 }));
 
-const steps = ['填写筹款活动信息', '验证受益人身份', '最终确认'];
+const steps = ['填写商品信息', '验证商家身份', '最终确认'];
 
 
 
@@ -227,12 +205,12 @@ export default function Launch() {
           >
         <div>
           <Typography variant="h2" gutterBottom>
-            New <b style={{color:"#ff914d"}}>HandChainrity</b> Campaign
-            <br /> | 发起手链筹
+            New <b style={{color:"#ff914d"}}>PriceScout</b> Commodity
+            <br /> | 发布商品
           </Typography>
           <Divider />
           <Typography>Fill the Sheet Below Now!
-          <br />填写表格，发起新的筹款活动！
+          <br />填写表格，上架你的商品！
           </Typography>
         </div>
         <Container sx={{ py: 2 }} maxWidth="md">
@@ -240,7 +218,7 @@ export default function Launch() {
           <main className={classes.layout}>
             <Paper className={classes.paper}>
               <Typography component="h1" variant="h4" align="center">
-                发起筹款活动
+                发布商品
               </Typography>
               <Stepper activeStep={activeStep} className={classes.stepper}>
                 {steps.map((label) => (
@@ -256,10 +234,10 @@ export default function Launch() {
                       感谢你为善心出力！
                     </Typography>
                     <Typography variant="subtitle1">
-                      你的筹款活动已经成功提交，但需要第三方公证后才可以正式发布并被查看。
+                      你的商品已经成功提交，但需要第三方公证后才可以正式发布并被查看。
                       若已是第三方，请点击<Link href={"/third-party"}>这里</Link>进行审核。
                       目前状态为刚发起，等待审核中。
-                      你的筹款活动ID是：{CampaignId}，可以点击<Link href={"root/details/:"+CampaignId}>这里</Link>查看。
+                      你的商品ID是：{CampaignId}，可以点击<Link href={"root/details/:"+CampaignId}>这里</Link>查看。
                     </Typography>
                   </React.Fragment>
                 ) : (
