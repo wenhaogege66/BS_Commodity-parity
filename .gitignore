@@ -1,2 +1,4 @@
 librarymanagementsystem-frontend/
 
+backend/backend/__pycache__/settings.cpython-312.pyc
+backend/Commodity/__pycache__/detail_views.cpython-312.pyc
