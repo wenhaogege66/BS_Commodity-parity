@@ -4,10 +4,10 @@ import axios from 'axios';
 
 export const API_CONFIG = {
   // Django 后端服务地址 (改为默认的 8000 端口)
-  BACKEND_URL: process.env.REACT_APP_BACKEND_URL || 'http://localhost:8000',
+  BACKEND_URL: 'http://121.36.199.66:8000',
   
   // Nginx 服务地址
-  NGINX_URL: process.env.REACT_APP_NGINX_URL || 'http://localhost:80',
+  NGINX_URL: 'http://121.36.199.66',
   
   // API 超时时间(ms)
   TIMEOUT: 10000,

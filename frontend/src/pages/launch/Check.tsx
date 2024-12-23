@@ -1,9 +1,8 @@
-import React from 'react';
-import { Typography,Grid ,TextField,FormControlLabel ,Checkbox, Button, List, ListItem, ListItemText, Paper, Card} from '@mui/material';
-import { toBeEnabled } from '@testing-library/jest-dom/matchers';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
 import ErrorIcon from '@mui/icons-material/Error';
+import { Button, Card, Grid, TextField, Typography } from '@mui/material';
 import axios from 'axios';
+import React from 'react';
 
 export default function Check({beneficiary,setState}:{beneficiary:string,setState:any}) {  
   const [beneficiaryCheck, setBeneficiaryCheck] = React.useState(false);

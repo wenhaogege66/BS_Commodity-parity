@@ -23,9 +23,14 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-y1$^w8@r3at)---e%kp^833sne^=u1a-%h+s#m#%h&#mcy1kvi"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = [
+    'localhost', 
+    '127.0.0.1',
+    '121.36.199.66',  # 服务器 IP
+    'web',            # Docker 服务名
+]
 
 
 # Application definition
@@ -81,7 +86,7 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": 'bs_commodity',
-        'HOST': '127.0.0.1',
+        'HOST': 'db',  # 改为使用 docker-compose 中的服务名
         'PORT': 3306,
         'USER': 'root',
         'PASSWORD': 'ww71304002ww'
@@ -137,6 +142,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'http://121.36.199.66',  # 服务器地址
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -157,4 +163,5 @@ CORS_PREFLIGHT_MAX_AGE = 86400
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
+    'http://121.36.199.66',  # 添加你的服务器地址
 ]

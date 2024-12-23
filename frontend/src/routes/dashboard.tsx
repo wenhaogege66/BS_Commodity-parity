@@ -1,7 +1,6 @@
 import MaxWidthWrapper from "../component/MaxWidthWrapper";
 //shift + alt + o 去除不必要引入
-import { createTheme, PaletteMode, ThemeOptions, ThemeProvider } from '@mui/material/styles';
-import React from "react";
+import { createTheme, ThemeOptions, ThemeProvider } from '@mui/material/styles';
 import { Link } from "react-router-dom";
 import AppAppBar from '../component/AppAppBar';
 
@@ -69,7 +68,6 @@ export const themeOptions: ThemeOptions = {
 };
 
 export default function Home() {
-  const [mode, setMode] = React.useState<PaletteMode>('light');
   const blogTheme = createTheme(themeOptions);
   return (
     <ThemeProvider theme={blogTheme }>

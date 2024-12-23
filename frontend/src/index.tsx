@@ -17,7 +17,6 @@ import SignUp from './pages/sign-up/SignUp';
 import ThirdParty from './routes/third-party';
 import Admin from './routes/admin';
 import Campaign from './pages/campaign/Campaign';
-import Details from './pages/campaign/Details';
 import Root from './routes/root';
 import Launch from './pages/launch/launch';
 import About from './pages/about/About';
@@ -47,10 +46,6 @@ const router = createBrowserRouter(
           path:'/root/about',
           element: <About/>
         },
-        {
-          path: '/root/details/:id',
-          element: <Details />,
-        }
       ]
     },
     {

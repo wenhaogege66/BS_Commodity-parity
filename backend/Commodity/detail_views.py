@@ -20,7 +20,7 @@ import os
 
 class PriceTrendAPIView(APIView):
     _driver = None
-    _driver_lock = Lock()  # 防止并发初始化
+    _driver_lock = Lock()
 
     @classmethod
     def get_driver(cls):
@@ -29,20 +29,16 @@ class PriceTrendAPIView(APIView):
             with cls._driver_lock:
                 if cls._driver is None:
                     try:
-                        # WebDriver配置
-                        chrome_driver = r"C:\Python312\chromedriver.exe"
-                        chrome_path = r"D:\Program Files\Google\Chrome\Application\chrome.exe"
                         options = Options()
-                        options.binary_location = chrome_path
-                        options.add_argument("--headless")  # 无头模式
+                        options.add_argument("--headless")
                         options.add_argument("--disable-gpu")
                         options.add_argument("--no-sandbox")
-                        options.add_argument("--disable-dev-shm-usage")  # 避免共享内存问题
-                        options.add_argument(f"user-data-dir={r'D:\study-at-zju\BS\Commodity parity\cache'}")  # 指定缓存目录
-                        service = Service(chrome_driver)
-
-                        # 初始化 WebDriver
-                        cls._driver = webdriver.Chrome(service=service, options=options)
+                        options.add_argument("--disable-dev-shm-usage")
+                        options.binary_location = "/usr/bin/chromium"  # 指定 chromium 位置
+                        
+                        cls._driver = webdriver.Chrome(
+                            options=options
+                        )
                     except WebDriverException as e:
                         print(f"WebDriver 初始化失败: {e}")
                         raise
@@ -50,7 +46,9 @@ class PriceTrendAPIView(APIView):
     
     def get_image_path(self, url_hash):
         """根据 URL 哈希值生成图片的文件路径"""
-        save_dir = r"D:\study-at-zju\BS\Commodity parity\frontend\src\asset\pricehis"
+        # Docker环境下使用统一的存储目录
+        save_dir = "/app/pricehis"
+        os.makedirs(save_dir, exist_ok=True)
         full_page_path = os.path.join(save_dir, f"full_page_{url_hash}.png")
         screenshot_path = os.path.join(save_dir, f"price_trend_{url_hash}.png")
         return full_page_path, screenshot_path

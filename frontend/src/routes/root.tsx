@@ -1,10 +1,8 @@
 import { ThemeOptions } from "@mui/material";
-import { createTheme, PaletteMode, ThemeProvider } from '@mui/material/styles';
-import React from "react";
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { Outlet } from "react-router-dom";
 import AppAppBar from "../component/AppAppBar";
 import Footer from "../pages/campaign/components/Footer";
-import getBlogTheme from '../theme/getBlogTheme';
 
 
 export const themeOptions: ThemeOptions = {
@@ -67,9 +65,7 @@ export const themeOptions: ThemeOptions = {
 
 
 export default function Root(){
-    const [mode, setMode] = React.useState<PaletteMode>('light');
     // // const [showCustomTheme, setShowCustomTheme] = React.useState(true);
-    const blogTheme = createTheme(getBlogTheme(mode));
     // const defaultTheme = createTheme({ palette: { mode } });
 
     const account = localStorage.getItem('account') || null;
