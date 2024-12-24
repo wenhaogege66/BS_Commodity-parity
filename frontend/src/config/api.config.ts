@@ -22,8 +22,25 @@ export const backendAxios = axios.create({
   timeout: API_CONFIG.TIMEOUT,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  // 允许跨域请求携带 cookie
+  withCredentials: true
 });
+
+// 添加响应拦截器处理错误
+backendAxios.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.response) {
+      console.error('Response error:', error.response.data);
+    } else if (error.request) {
+      console.error('Request error:', error.request);
+    } else {
+      console.error('Error:', error.message);
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Nginx 服务的 axios 实例
 export const nginxAxios = axios.create({

@@ -1,11 +1,12 @@
-import axios from "axios";
 import { useEffect, useState } from "react";
 
 import {
   Avatar,
   Box,
+  Button,
   Card,
   CardContent,
+  CardMedia,
   Chip,
   Container,
   CssBaseline,
@@ -16,18 +17,61 @@ import {
   ListItemText,
   Paper,
   Tooltip,
-  Typography,
-  CardMedia,
-  Button
+  Typography
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Application from "../component/application";
 import Applications from "../component/applications";
 import "../styles/user.css"; // 确保路径正确
 // import SimpleCollapse from '../component/try';
-import "./user.css";
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import { backendAxios } from '../config/api.config';
+import "./user.css";
+
+export const StatusDescriptions: Record<string, string> = {
+  Stared: "你已经关注了该商品，可以随时查看价格变化喔。"
+};
+
+export const StatusColors: Record<
+  string,
+  { btnBg: string; tooltipBg: string; btnShadow: string; btnHover: string }
+> = {
+    Stared: {
+    btnBg: "#FFA500",
+    btnShadow: "rgba(255, 140, 0, 0.4)",
+    tooltipBg: "linear-gradient(135deg, #FFA500 0%, #FF7500 100%)", // 增大颜色对比
+    btnHover: "#FF8700", // 略深的橙色
+  }
+};
+
+export  const CampaignTip = ({ campaign, className }: { campaign: { status: string }; className?: string }) => {
+    const statusColors = StatusColors[campaign.status] || {
+      btnBg: "#6c757d", // 默认按钮颜色
+      tooltipBg: "linear-gradient(135deg, #6c757d 0%, #adb5bd 100%)", // 默认提示颜色
+    };
+
+    return (
+      <div
+        className="custom-tooltip-container"// 使用传递的 className
+        style={
+          {
+            "--tooltip-btn-bg": statusColors.btnBg,
+            "--tooltip-content-bg": statusColors.tooltipBg,
+            "--tooltip-btn-sh": statusColors.btnShadow,
+            "--tooltip-btn-hv": statusColors.btnHover,
+          } as React.CSSProperties
+        } // 使用类型断言
+      >
+        <button className={`custom-tooltip-btn  ${className}`}>{campaign.status}</button>
+        <div className="custom-tooltip-content">
+          <span className="custom-tooltip-arrow"></span>
+          <p className="custom-tooltip-text">
+            {StatusDescriptions[campaign.status]}
+          </p>
+        </div>
+      </div>
+    );
+  };
 
 export default function User() {
   const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");

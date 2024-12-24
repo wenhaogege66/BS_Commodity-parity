@@ -93,8 +93,9 @@ class PriceTrendAPIView(APIView):
             )
             print("已加载目标内容")
 
-            # 生成截图存储路径
-            save_dir = r"D:\study-at-zju\BS\Commodity parity\frontend\src\asset\pricehis"
+            # 修改截图存储路径
+            # 在 Docker 环境中，保存到 nginx 配置的静态文件目录
+            save_dir = "/usr/share/nginx/pricehis"  # nginx 中配置的静态文件目录
             os.makedirs(save_dir, exist_ok=True)
 
             # 使用 URL 生成唯一文件名
@@ -140,8 +141,8 @@ class PriceTrendAPIView(APIView):
             return Response({
                 "data": clean_content,
                 "screenshots": {
-                    "full_page": full_page_path,
-                    "cropped": screenshot_path
+                    "full_page": f"/pricehis/full_page_{url_hash}.png",  # 返回相对路径
+                    "cropped": f"/pricehis/price_trend_{url_hash}.png"   # 返回相对路径
                 }
             }, status=200)
         except TimeoutException:

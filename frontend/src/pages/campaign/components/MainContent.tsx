@@ -54,6 +54,7 @@ interface SearchProps {
  * @returns {string} 转换后的 HTTP URL，例如 "http://127.0.0.1/pricehis/price_trend_c46e3dad8500b93eb82da62bad818f17.png"
  */
 function convertToHttpUrl(localPath: string) {
+  // localPath = "/pricehis/price_trend_c803face22db192b67870ab29fdce876.png";
   const keyDir = "pricehis";
   const baseUrl = `${API_CONFIG.NGINX_URL}/pricehis/`;
 
@@ -67,6 +68,7 @@ function convertToHttpUrl(localPath: string) {
 
   const relativePath = normalizedPath.substring(keyDirIndex + keyDir.length + 1);
   const httpUrl = `${baseUrl}${relativePath}`;
+  console.log("转换后的 HTTP URL:", httpUrl);
   return httpUrl;
 }
 
@@ -102,7 +104,7 @@ export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
   const searchSuggestions = async (query: string) => {
     try {
       const response = await axios.get(
-        "http://localhost:80/search/get_keywords",
+        "http://121.36.199.66:80/search/get_keywords",
         {
           params: { keywords: query },
         }
@@ -129,7 +131,7 @@ export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
     try {
       setLoad(true);
       const response = await axios.get(
-        "http://localhost:80/search/ajax_search_product_list",
+        "http://121.36.199.66:80/search/ajax_search_product_list",
         {
           params: {
             keywords: query,
@@ -158,11 +160,11 @@ export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
             article_title: truncatedTitle, // 替换为截断后的标题
             mall_logo_url: commodity.mall_logo_url.replace(
               "https://",
-              "http://localhost:80/image_proxy/"
+              "http://121.36.199.66:80/image_proxy/"
             ),
             article_pic: commodity.article_pic.replace(
               "https://",
-              "http://localhost:80/image_proxy/"
+              "http://121.36.199.66:80/image_proxy/"
             ),
           };
         }
@@ -322,14 +324,14 @@ export default function MainContent() {
         "乐扣乐扣保温杯男士316不锈钢大容量杯子女士高颜值水杯双饮保温杯 【双饮口】摩卡棕1000ML",
       article_mall: "京东",
       mall_logo_url:
-        "http://localhost:80/image_proxy/qny.smzdm.com/202201/26/61f0f374020dd3641.png",
+        "http://121.36.199.66:80/image_proxy/qny.smzdm.com/202201/26/61f0f374020dd3641.png",
       article_price: 109,
       wiki_id: 46253720,
       hash_id: "4qeprz0",
       comment_count: 0,
       page_price: 109,
       article_pic:
-        "http://localhost:80/image_proxy/qny.smzdm.com/202411/14/6735d4b5a43839510.png",
+        "http://121.36.199.66:80/image_proxy/qny.smzdm.com/202411/14/6735d4b5a43839510.png",
       link: "https://item.jd.com/100066625685.html",
       go_link: "https://go.smzdm.com/8500b93eb82da62b/ca_aa_hy_0_0_0_0_0_0",
       coupon: [],
@@ -343,14 +345,14 @@ export default function MainContent() {
         "日康宝宝水杯儿童吸管杯幼儿喝水杯子婴儿6个月以上外出学饮杯",
       article_mall: "拼多多",
       mall_logo_url:
-        "http://localhost:80/image_proxy/qneimg.smzdm.com/201907/09/5d246a5a419331130.png",
+        "http://121.36.199.66:80/image_proxy/qneimg.smzdm.com/201907/09/5d246a5a419331130.png",
       article_price: 36.99,
       wiki_id: 46252172,
       hash_id: "1xdep61",
       comment_count: 0,
       page_price: 36.99,
       article_pic:
-        "http://localhost:80/image_proxy/y.zdmimg.com/202411/15/6736bed0df6e11463.jpg",
+        "http://121.36.199.66:80/image_proxy/y.zdmimg.com/202411/15/6736bed0df6e11463.jpg",
       link: "https://mobile.yangkeduo.com/goods.html?goods_id=594220115623",
       go_link: "https://go.smzdm.com/05e406d9c5d32be6/ca_aa_hy_0_0_0_0_0_0",
       coupon: [],
@@ -364,14 +366,14 @@ export default function MainContent() {
         "BABLOV花伴森保温杯女士吸管杯316不锈钢水杯便携水壶户外保温杯 （双饮盖+杯套）航海宝藏号550ml",
       article_mall: "京东",
       mall_logo_url:
-        "http://localhost:80/image_proxy/qny.smzdm.com/202201/26/61f0f374020dd3641.png",
+        "http://121.36.199.66:80/image_proxy/qny.smzdm.com/202201/26/61f0f374020dd3641.png",
       article_price: 149,
       wiki_id: 46253281,
       hash_id: "re7d990",
       comment_count: 0,
       page_price: 149,
       article_pic:
-        "http://localhost:80/image_proxy/qny.smzdm.com/202411/15/673700b62c9118652.jpg",
+        "http://121.36.199.66:80/image_proxy/qny.smzdm.com/202411/15/673700b62c9118652.jpg",
       link: "https://item.jd.com/100148321150.html",
       go_link: "https://go.smzdm.com/9cfb5324e23e8b74/ca_aa_hy_0_0_0_0_0_0",
       coupon: [
@@ -397,14 +399,14 @@ export default function MainContent() {
         "乐扣乐扣保温杯男士316不锈钢大容量杯子女士高颜值水杯双饮保温杯 【双饮口】摩卡棕1000ML",
       article_mall: "京东",
       mall_logo_url:
-        "http://localhost:80/image_proxy/qny.smzdm.com/202201/26/61f0f374020dd3641.png",
+        "http://121.36.199.66:80/image_proxy/qny.smzdm.com/202201/26/61f0f374020dd3641.png",
       article_price: 109,
       wiki_id: 46253720,
       hash_id: "4qeprz0",
       comment_count: 0,
       page_price: 109,
       article_pic:
-        "http://localhost:80/image_proxy/qny.smzdm.com/202411/14/6735d4b5a43839510.png",
+        "http://121.36.199.66:80/image_proxy/qny.smzdm.com/202411/14/6735d4b5a43839510.png",
       link: "https://item.jd.com/100066625685.html",
       go_link: "https://go.smzdm.com/8500b93eb82da62b/ca_aa_hy_0_0_0_0_0_0",
       coupon: [],
@@ -418,14 +420,14 @@ export default function MainContent() {
         "日康宝宝水杯儿童吸管杯幼儿喝水杯子婴儿6个月以上外出学饮杯",
       article_mall: "拼多多",
       mall_logo_url:
-        "http://localhost:80/image_proxy/qneimg.smzdm.com/201907/09/5d246a5a419331130.png",
+        "http://121.36.199.66:80/image_proxy/qneimg.smzdm.com/201907/09/5d246a5a419331130.png",
       article_price: 36.99,
       wiki_id: 46252172,
       hash_id: "1xdep61",
       comment_count: 0,
       page_price: 36.99,
       article_pic:
-        "http://localhost:80/image_proxy/y.zdmimg.com/202411/15/6736bed0df6e11463.jpg",
+        "http://121.36.199.66:80/image_proxy/y.zdmimg.com/202411/15/6736bed0df6e11463.jpg",
       link: "https://mobile.yangkeduo.com/goods.html?goods_id=594220115623",
       go_link: "https://go.smzdm.com/05e406d9c5d32be6/ca_aa_hy_0_0_0_0_0_0",
       coupon: [],
@@ -439,14 +441,14 @@ export default function MainContent() {
         "BABLOV花伴森保温杯女士吸管杯316不锈钢水杯便携水壶户外保温杯 （双饮盖+杯套）航海宝藏号550ml",
       article_mall: "京东",
       mall_logo_url:
-        "http://localhost:80/image_proxy/qny.smzdm.com/202201/26/61f0f374020dd3641.png",
+        "http://121.36.199.66:80/image_proxy/qny.smzdm.com/202201/26/61f0f374020dd3641.png",
       article_price: 149,
       wiki_id: 46253281,
       hash_id: "re7d990",
       comment_count: 0,
       page_price: 149,
       article_pic:
-        "http://localhost:80/image_proxy/qny.smzdm.com/202411/15/673700b62c9118652.jpg",
+        "http://121.36.199.66:80/image_proxy/qny.smzdm.com/202411/15/673700b62c9118652.jpg",
       link: "https://item.jd.com/100148321150.html",
       go_link: "https://go.smzdm.com/9cfb5324e23e8b74/ca_aa_hy_0_0_0_0_0_0",
       coupon: [
@@ -512,11 +514,12 @@ export default function MainContent() {
       setPricehis(null);
       try {
         const response = await axios.post(
-          "http://localhost:8000/commodity/price-trend/",
+          "http://121.36.199.66/api/commodity/price-trend/",
           {
             url: commodity.link,
           }
         );
+        console.log("His response:", response);
 
         // 检查响应状态码
         if (response.status !== 200) {

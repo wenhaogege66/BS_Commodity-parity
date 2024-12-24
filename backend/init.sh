@@ -12,4 +12,8 @@ echo "Applying migrations..."
 python manage.py migrate
 
 echo "Starting Gunicorn..."
-gunicorn --bind 0.0.0.0:8000 backend.wsgi:application 
+gunicorn --bind 0.0.0.0:8000 \
+         --timeout 300 \
+         --workers 3 \
+         --threads 2 \
+         backend.wsgi:application 

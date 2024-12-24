@@ -136,15 +136,23 @@ STATIC_URL = "static/"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # CORS配置
-CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_CREDENTIALS = True
-
 CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'http://127.0.0.1:3000',
-    'http://121.36.199.66',  # 服务器地址
+    'http://121.36.199.66',
 ]
 
+# 允许所有请求方法
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
+
+# 允许所有请求头
 CORS_ALLOW_HEADERS = [
     'accept',
     'accept-encoding',
@@ -156,6 +164,12 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
 ]
+
+# 允许携带认证信息
+CORS_ALLOW_CREDENTIALS = True
+
+# 开发环境可以临时允许所有源
+CORS_ALLOW_ALL_ORIGINS = True  # 仅在开发时使用
 
 CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 CORS_PREFLIGHT_MAX_AGE = 86400
