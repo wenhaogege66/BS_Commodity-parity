@@ -1,2 +1,4 @@
-2024/12/21-16:20:42.938 1320 Creating DB D:\study-at-zju\BS\Commodity parity\cache\Default\Extension Rules since it was missing.
-2024/12/21-16:20:42.955 1320 Reusing MANIFEST D:\study-at-zju\BS\Commodity parity\cache\Default\Extension Rules/MANIFEST-000001
+2024/12/24-16:47:59.474 7b30 Creating DB D:\study-at-zju\BS\Commodity parity\cache\Default\Extension Rules since it was missing.
+2024/12/24-16:47:59.483 7b30 Reusing MANIFEST D:\study-at-zju\BS\Commodity parity\cache\Default\Extension Rules/MANIFEST-000001
+2024/12/24-16:47:59.484 7b30 Recovering log #3
+2024/12/24-16:47:59.485 7b30 Reusing old log D:\study-at-zju\BS\Commodity parity\cache\Default\Extension Rules/000003.log 

@@ -1,2 +1,4 @@
-2024/12/21-16:20:43.038 185c Creating DB D:\study-at-zju\BS\Commodity parity\cache\Default\shared_proto_db since it was missing.
-2024/12/21-16:20:43.044 185c Reusing MANIFEST D:\study-at-zju\BS\Commodity parity\cache\Default\shared_proto_db/MANIFEST-000001
+2024/12/24-16:47:59.613 8650 Creating DB D:\study-at-zju\BS\Commodity parity\cache\Default\shared_proto_db since it was missing.
+2024/12/24-16:47:59.621 8650 Reusing MANIFEST D:\study-at-zju\BS\Commodity parity\cache\Default\shared_proto_db/MANIFEST-000001
+2024/12/24-16:47:59.622 8650 Recovering log #3
+2024/12/24-16:47:59.624 8650 Reusing old log D:\study-at-zju\BS\Commodity parity\cache\Default\shared_proto_db/000003.log 

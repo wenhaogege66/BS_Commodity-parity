@@ -1,18 +1,7 @@
-[11296:25332:1221/162042.623:WARNING:chrome_main_delegate.cc(672)] This is Chrome version 131.0.6778.205 (not a warning)
-[11296:25332:1221/162042.897:INFO:chrome_browser_cloud_management_controller.cc(196)] No machine level policy manager exists.
-[2068:3412:1221/162043.372:INFO:cpu_info.cc(53)] Available number of cores: 20
-[10392:28180:1221/162043.492:INFO:cpu_info.cc(53)] Available number of cores: 20
-[30784:26460:1221/162044.140:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
-[17572:31352:1221/162044.604:INFO:cpu_info.cc(53)] Available number of cores: 20
-[23820:15512:1221/162044.988:INFO:cpu_info.cc(53)] Available number of cores: 20
-[30784:26460:1221/162046.121:ERROR:gles2_cmd_decoder_passthrough.cc(1053)] [GroupMarkerNotSet(crbug.com/242999)!:A030EB032C250000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader flag to opt in to lower security guarantees for trusted content.
-[30784:26460:1221/162046.131:ERROR:gles2_cmd_decoder_passthrough.cc(1053)] [GroupMarkerNotSet(crbug.com/242999)!:A060EB032C250000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader flag to opt in to lower security guarantees for trusted content.
-[30784:26460:1221/162046.139:ERROR:gl_utils.cc(426)] [.WebGL-0x358c012d1b00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels
-[30784:26460:1221/162046.164:ERROR:gles2_cmd_decoder_passthrough.cc(1053)] [GroupMarkerNotSet(crbug.com/242999)!:A090EB032C250000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader flag to opt in to lower security guarantees for trusted content.
-[30784:26460:1221/162046.169:ERROR:gles2_cmd_decoder_passthrough.cc(1053)] [GroupMarkerNotSet(crbug.com/242999)!:A080EC032C250000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader flag to opt in to lower security guarantees for trusted content.
-[11296:25332:1221/162046.177:INFO:CONSOLE(0)] "[GroupMarkerNotSet(crbug.com/242999)!:A030EB032C250000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader flag to opt in to lower security guarantees for trusted content.", source: https://www.hisprice.cn/his.php?hisurl=https%253A%252F%252Fitem.jd.com%252F10093521210661.html (0)
-[11296:25332:1221/162046.177:INFO:CONSOLE(0)] "[GroupMarkerNotSet(crbug.com/242999)!:A060EB032C250000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader flag to opt in to lower security guarantees for trusted content.", source: https://www.hisprice.cn/his.php?hisurl=https%253A%252F%252Fitem.jd.com%252F10093521210661.html (0)
-[11296:25332:1221/162046.178:INFO:CONSOLE(0)] "[.WebGL-0x358c012d1b00]GL Driver Message (OpenGL, Performance, GL_CLOSE_PATH_NV, High): GPU stall due to ReadPixels", source: https://www.hisprice.cn/his.php?hisurl=https%253A%252F%252Fitem.jd.com%252F10093521210661.html (0)
-[11296:25332:1221/162046.178:INFO:CONSOLE(0)] "[GroupMarkerNotSet(crbug.com/242999)!:A090EB032C250000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader flag to opt in to lower security guarantees for trusted content.", source: https://www.hisprice.cn/his.php?hisurl=https%253A%252F%252Fitem.jd.com%252F10093521210661.html (0)
-[11296:25332:1221/162046.178:INFO:CONSOLE(0)] "[GroupMarkerNotSet(crbug.com/242999)!:A080EC032C250000]Automatic fallback to software WebGL has been deprecated. Please use the --enable-unsafe-swiftshader flag to opt in to lower security guarantees for trusted content.", source: https://www.hisprice.cn/his.php?hisurl=https%253A%252F%252Fitem.jd.com%252F10093521210661.html (0)
-[11296:25332:1221/162048.636:ERROR:device_event_log_impl.cc(201)] [16:20:48.636] USB: usb_service_win.cc:105 SetupDiGetDeviceProperty({{A45C254E-DF1C-4EFD-8020-67D146A850E0}, 6}) failed: 找不到元素。 (0x490)
+[30496:28052:1224/164759.184:WARNING:chrome_main_delegate.cc(672)] This is Chrome version 131.0.6778.205 (not a warning)
+[30496:28052:1224/164759.426:INFO:chrome_browser_cloud_management_controller.cc(196)] No machine level policy manager exists.
+[33128:30892:1224/164759.605:INFO:cpu_info.cc(53)] Available number of cores: 20
+[30540:32900:1224/164759.699:INFO:cpu_info.cc(53)] Available number of cores: 20
+[30792:31436:1224/164759.798:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
+[3044:31936:1224/164800.281:INFO:cpu_info.cc(53)] Available number of cores: 20
+[33636:26296:1224/164800.759:INFO:cpu_info.cc(53)] Available number of cores: 20

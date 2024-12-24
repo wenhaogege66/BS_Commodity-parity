@@ -183,12 +183,12 @@ export default function User() {
                   whiteSpace: "nowrap",
                 }}
               >
-                <strong>唯一受益地址 : </strong>
-                {userInfo.address}
+                <strong>用户ID:</strong>
+                {userInfo.user_id}
               </Typography>
             </Tooltip>
             <Typography>
-              <strong>姓名 : </strong> {userInfo.username}
+              <strong>姓名 : </strong> {userInfo.user_name}
             </Typography>
             <Tooltip title={userInfo.email} placement="top">
               <Typography
