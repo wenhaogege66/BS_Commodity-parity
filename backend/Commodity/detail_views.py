@@ -46,11 +46,19 @@ class PriceTrendAPIView(APIView):
     
     def get_image_path(self, url_hash):
         """根据 URL 哈希值生成图片的文件路径"""
-        # Docker环境下使用统一的存储目录
-        save_dir = "/app/pricehis"
-        os.makedirs(save_dir, exist_ok=True)
+        # 统一使用 nginx 的静态文件目录
+        save_dir = "/usr/share/nginx/pricehis"
+        try:
+            os.makedirs(save_dir, exist_ok=True)
+            print(f"目录创建/确认成功: {save_dir}")
+            # 检查目录权限
+            print(f"目录权限: {oct(os.stat(save_dir).st_mode)[-3:]}")
+        except Exception as e:
+            print(f"创建目录失败: {str(e)}")
+        
         full_page_path = os.path.join(save_dir, f"full_page_{url_hash}.png")
         screenshot_path = os.path.join(save_dir, f"price_trend_{url_hash}.png")
+        print(f"生成的文件路径: \n全页面: {full_page_path}\n裁剪图: {screenshot_path}")
         return full_page_path, screenshot_path
 
     def post(self, request, *args, **kwargs):
@@ -93,22 +101,17 @@ class PriceTrendAPIView(APIView):
             )
             print("已加载目标内容")
 
-            # 修改截图存储路径
-            # 在 Docker 环境中，保存到 nginx 配置的静态文件目录
-            save_dir = "/usr/share/nginx/pricehis"  # nginx 中配置的静态文件目录
-            os.makedirs(save_dir, exist_ok=True)
-
-            # 使用 URL 生成唯一文件名
-            url_hash = hashlib.md5(url.encode()).hexdigest()
-            full_page_path = os.path.join(save_dir, f"full_page_{url_hash}.png")
-            screenshot_path = os.path.join(save_dir, f"price_trend_{url_hash}.png")
+            # 不需要重新定义 save_dir，直接使用 get_image_path 的返回值
+            full_page_path, screenshot_path = self.get_image_path(url_hash)
             
             container = driver.find_element(By.ID, "container")
             # 确保滚动完成后再截图
             driver.execute_script("arguments[0].scrollIntoView();", container)
             # 截取整个页面
+            print(f"尝试保存全页面截图到: {full_page_path}")
             driver.save_screenshot(full_page_path)
-            print(f"全页面截图已保存到: {full_page_path}")
+            print(f"全页面截图保存成功，检查文件是否存在: {os.path.exists(full_page_path)}")
+            print(f"文件大小: {os.path.getsize(full_page_path)} bytes")
 
             # 只截取页面的上部分
             image = Image.open(full_page_path)
@@ -127,8 +130,10 @@ class PriceTrendAPIView(APIView):
             print(f'container 左侧位置 (left): {left}')
 
             cropped_image = image.crop((811, 0, image.width-830, height))
+            print(f"尝试保存裁剪图片到: {screenshot_path}")
             cropped_image.save(screenshot_path)
-            print(f"裁剪后的截图已保存到: {screenshot_path}")
+            print(f"裁剪图片保存成功，检查文件是否存在: {os.path.exists(screenshot_path)}")
+            print(f"文件大小: {os.path.getsize(screenshot_path)} bytes")
 
 
             # 使用 JS 获取内容

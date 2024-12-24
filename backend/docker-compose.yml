@@ -16,7 +16,7 @@ services:
       - MYSQL_PASSWORD=ww71304002ww
       - MYSQL_HOST=db
     volumes:
-      - pricehis_data:/app/pricehis
+      - pricehis_data:/usr/share/nginx/pricehis
     networks:
       - pricescout_network
 

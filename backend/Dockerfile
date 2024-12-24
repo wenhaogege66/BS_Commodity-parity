@@ -42,6 +42,10 @@ RUN chmod +x /app/init.sh
 # 安装 netcat 用于检查数据库连接
 RUN apt-get update && apt-get install -y netcat-openbsd
 
+# 创建并设置目录权限
+RUN mkdir -p /usr/share/nginx/pricehis && \
+    chmod 777 /usr/share/nginx/pricehis
+
 # 暴露端口
 EXPOSE 8000
 
