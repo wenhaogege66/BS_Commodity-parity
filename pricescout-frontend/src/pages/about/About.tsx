@@ -12,11 +12,30 @@ export default function About() {
             <Container
                 maxWidth="lg"
                 component="main"
-                sx={{ display: 'flex', flexDirection: 'column', my: 16, gap: 4 }}
+                sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    my: { xs: 8, md: 16 },
+                    gap: { xs: 2, md: 4 },
+                }}
             >
-                <Box sx={{ display: 'flex', flexDirection: 'row', alignItems: "flex-end", gap: 4 }}>
+                <Box 
+                    sx={{ 
+                        display: 'flex', 
+                        flexDirection: { xs: 'column', md: 'row' },
+                        alignItems: { xs: 'center', md: "flex-end" }, 
+                        gap: { xs: 2, md: 4 },
+                        textAlign: { xs: 'center', md: 'left' }
+                    }}
+                >
                     <div>
-                        <Typography variant="h2" gutterBottom>
+                        <Typography 
+                            variant="h2" 
+                            gutterBottom
+                            sx={{
+                                fontSize: { xs: '2rem', md: '3.75rem' }
+                            }}
+                        >
                             About <b>Us</b> 
                             <br />| 关于我们
                         </Typography>
@@ -26,12 +45,33 @@ export default function About() {
                             <br />关于比价小子的一切 -- 您的智能购物助手。
                         </Typography>
                     </div>
-                    <Box style={{ height: 200, width: 500, marginRight: 2, display: 'flex', alignItems: 'flex-start', justifyContent: 'start' }}>
-                        <MySvg style={{ height: 150, width: 1000 }} />
+                    <Box 
+                        sx={{ 
+                            height: { xs: 150, md: 200 },
+                            width: { xs: '100%', md: 500 },
+                            display: 'flex', 
+                            alignItems: 'flex-start', 
+                            justifyContent: 'center'
+                        }}
+                    >
+                        <MySvg style={{ height: '100%', width: 'auto' }} />
                     </Box>
                 </Box>
-                <Paper sx={{ p: 4, gap: 1, display: "flex", flexDirection: "column" }}>
-                    <Typography variant="h4" gutterBottom>
+                <Paper 
+                    sx={{ 
+                        p: { xs: 2, md: 4 },
+                        gap: 1, 
+                        display: "flex", 
+                        flexDirection: "column" 
+                    }}
+                >
+                    <Typography 
+                        variant="h4" 
+                        gutterBottom
+                        sx={{
+                            fontSize: { xs: '1.5rem', md: '2.125rem' }
+                        }}
+                    >
                         项目介绍：PriceScout - 比价小子
                     </Typography>
                     <Typography variant="body1" gutterBottom>

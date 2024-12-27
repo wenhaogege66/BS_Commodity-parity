@@ -14,27 +14,27 @@ import { HandChainrityIcon } from './CustomIcons';
 const items = [
   {
     icon: <SettingsSuggestRoundedIcon sx={{ color: 'text.secondary' }} />,
-    title: "发起善举",
+    title: "多平台比价",
     description:
-      "通过我们的平台，您可以发起您的善举项目，让更多人看到。",
-    },
+      "实时对比京东、天猫、淘宝等主流电商平台的商品价格，帮您找到最优惠的选择。",
+  },
   {
     icon: <ConstructionRoundedIcon sx={{ color: 'text.secondary' }} />,
-    title: '安全可靠',
+    title: '价格追踪',
     description:
-      '我们的平台采用最新的技术，确保您的信息安全。',
+      '记录并展示商品的历史价格走势，帮助您判断当前是否是购买的好时机。',
   },
   {
     icon: <ThumbUpAltRoundedIcon sx={{ color: 'text.secondary' }} />,
-    title: '用户体验',
+    title: '智能提醒',
     description:
-      '我们的平台提供良好用户体验，让您的善举之旅更加愉快。',
+      '收藏感兴趣的商品，当价格达到理想值时获得通知。',
   },
   {
     icon: <AutoFixHighRoundedIcon sx={{ color: 'text.secondary' }} />,
-    title: '持续更新',
+    title: '优惠整合',
     description:
-      '我们的团队会持续更新平台，为您提供更好的服务。',
+      '自动收集和展示各平台的优惠券信息，最大化您的实际优惠。',
   },
 ];
 

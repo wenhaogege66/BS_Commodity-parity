@@ -73,7 +73,7 @@ export default function TemplateFrame({
               aria-label="Back to templates"
               startIcon={<ArrowBackRoundedIcon />}
               component="a"
-              onClick={() => { navigate("/root/about");}}
+              onClick={() => { navigate("/");}}
               sx={{ display: { xs: 'none', sm: 'flex' } }}
             >
               <b>返 回</b>
@@ -82,7 +82,7 @@ export default function TemplateFrame({
               size="small"
               aria-label="Back to templates"
               component="a"
-              href="/material-ui/getting-started/templates/"
+              href="/"
               sx={{ display: { xs: 'auto', sm: 'none' } }}
             >
               <ArrowBackRoundedIcon />

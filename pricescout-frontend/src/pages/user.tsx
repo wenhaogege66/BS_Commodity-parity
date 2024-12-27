@@ -17,95 +17,98 @@ import {
   ListItemText,
   Paper,
   Tooltip,
-  Typography
+  Typography,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Application from "../component/application";
 import Applications from "../component/applications";
 import "../styles/user.css"; // 确保路径正确
 // import SimpleCollapse from '../component/try';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import { backendAxios } from '../config/api.config';
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import { backendAxios } from "../config/api.config";
 import "./user.css";
 
 export const StatusDescriptions: Record<string, string> = {
-  Stared: "你已经关注了该商品，可以随时查看价格变化喔。"
+  Stared: "你已经关注了该商品，可以随时查看价格变化喔。",
 };
 
 export const StatusColors: Record<
   string,
   { btnBg: string; tooltipBg: string; btnShadow: string; btnHover: string }
 > = {
-    Stared: {
+  Stared: {
     btnBg: "#FFA500",
     btnShadow: "rgba(255, 140, 0, 0.4)",
     tooltipBg: "linear-gradient(135deg, #FFA500 0%, #FF7500 100%)", // 增大颜色对比
     btnHover: "#FF8700", // 略深的橙色
-  }
+  },
 };
 
-export  const CampaignTip = ({ campaign, className }: { campaign: { status: string }; className?: string }) => {
-    const statusColors = StatusColors[campaign.status] || {
-      btnBg: "#6c757d", // 默认按钮颜色
-      tooltipBg: "linear-gradient(135deg, #6c757d 0%, #adb5bd 100%)", // 默认提示颜色
-    };
-
-    return (
-      <div
-        className="custom-tooltip-container"// 使用传递的 className
-        style={
-          {
-            "--tooltip-btn-bg": statusColors.btnBg,
-            "--tooltip-content-bg": statusColors.tooltipBg,
-            "--tooltip-btn-sh": statusColors.btnShadow,
-            "--tooltip-btn-hv": statusColors.btnHover,
-          } as React.CSSProperties
-        } // 使用类型断言
-      >
-        <button className={`custom-tooltip-btn  ${className}`}>{campaign.status}</button>
-        <div className="custom-tooltip-content">
-          <span className="custom-tooltip-arrow"></span>
-          <p className="custom-tooltip-text">
-            {StatusDescriptions[campaign.status]}
-          </p>
-        </div>
-      </div>
-    );
+export const CampaignTip = ({
+  campaign,
+  className,
+}: {
+  campaign: { status: string };
+  className?: string;
+}) => {
+  const statusColors = StatusColors[campaign.status] || {
+    btnBg: "#6c757d", // 默认按钮颜色
+    tooltipBg: "linear-gradient(135deg, #6c757d 0%, #adb5bd 100%)", // 默认提示颜色
   };
+
+  return (
+    <div
+      className="custom-tooltip-container" // 使用传递的 className
+      style={
+        {
+          "--tooltip-btn-bg": statusColors.btnBg,
+          "--tooltip-content-bg": statusColors.tooltipBg,
+          "--tooltip-btn-sh": statusColors.btnShadow,
+          "--tooltip-btn-hv": statusColors.btnHover,
+        } as React.CSSProperties
+      } // 使用类型断言
+    >
+      <button className={`custom-tooltip-btn  ${className}`}>
+        {campaign.status}
+      </button>
+      <div className="custom-tooltip-content">
+        <span className="custom-tooltip-arrow"></span>
+        <p className="custom-tooltip-text">
+          {StatusDescriptions[campaign.status]}
+        </p>
+      </div>
+    </div>
+  );
+};
 
 export default function User() {
   const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
 
   const [selectedIndex, setSelectedIndex] = useState("已收藏的商品");
-  const btnlist = (
+  const btnlist =
     userInfo.role === "admin"
       ? ["消息列表", "已收藏的商品", "我上架的", "商家申请审批"]
       : userInfo.role === "beneficiary"
         ? ["消息列表", "购物车", "已收藏的商品", "我上架的"]
-        : [
-            "消息列表",
-            "购物车",
-            "已收藏的商品",
-            "我上架的",
-            "申请成为商家",
-          ]
-  );
+        : ["消息列表", "购物车", "已收藏的商品", "我上架的", "申请成为商家"];
 
   const navigate = useNavigate();
 
   const [favorites, setFavorites] = useState([]);
 
   const fetchFavorites = async () => {
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
     if (!userInfo.user_id) return;
 
     try {
-      const response = await backendAxios.get(`/user/get_favorites/?user_id=${userInfo.user_id}`);
-      if (response.data.status === 'success') {
+      const response = await backendAxios.get(
+        `/user/get_favorites/?user_id=${userInfo.user_id}`
+      );
+      if (response.data.status === "success") {
         setFavorites(response.data.data);
       }
     } catch (error) {
-      console.error('获取收藏列表失败:', error);
+      console.error("获取收藏列表失败:", error);
     }
   };
 
@@ -116,20 +119,20 @@ export default function User() {
   }, [selectedIndex]);
 
   const handleUnfavorite = async (productId: number) => {
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
     if (!userInfo.user_id) return;
 
     try {
-      const response = await backendAxios.post('/user/remove_favorite/', {
+      const response = await backendAxios.post("/user/remove_favorite/", {
         user_id: userInfo.user_id,
-        product_id: productId
+        product_id: productId,
       });
 
-      if (response.data.status === 'success') {
+      if (response.data.status === "success") {
         fetchFavorites();
       }
     } catch (error) {
-      console.error('取消收藏失败:', error);
+      console.error("取消收藏失败:", error);
     }
   };
 
@@ -137,14 +140,19 @@ export default function User() {
     <Container
       maxWidth="lg"
       component="main"
-      sx={{ display: "flex", flexDirection: "column", my: 16, gap: 4 }}
+      sx={{
+        display: "flex",
+        flexDirection: "column",
+        my: { xs: 8, md: 16 },
+        gap: { xs: 2, md: 4 },
+      }}
     >
       <CssBaseline enableColorScheme />
       <Box
         sx={{
           display: "flex",
-          flexDirection: "row",
-          gap: 4,
+          flexDirection: { xs: "column", md: "row" },
+          gap: { xs: 2, md: 4 },
           overflow: "auto",
           position: "relative",
         }}
@@ -153,20 +161,20 @@ export default function User() {
           sx={{
             display: "flex",
             flexDirection: "column",
-            width: "30%",
-            gap: 4,
+            width: { xs: "100%", md: "30%" },
+            gap: { xs: 2, md: 4 },
           }}
-          position="sticky"
+          position={{ xs: "static", md: "sticky" }}
         >
           <Paper
             elevation={3}
             sx={{
               display: "flex",
               flexDirection: "column",
-              gap: 4,
-              p: 4,
+              gap: { xs: 2, md: 4 },
+              p: { xs: 2, md: 4 },
               justifySelf: "start",
-              maxWidth: "300px",
+              maxWidth: { xs: "100%", md: "300px" },
             }}
           >
             <Box
@@ -182,9 +190,10 @@ export default function User() {
                 src={"../../../img/user.png"}
                 alt={userInfo.username}
                 sx={{
-                  width: 80,
-                  height: 80,
+                  width: { xs: 60, md: 80 },
+                  height: { xs: 60, md: 80 },
                   mb: 2,
+                  mx: "auto",
                   boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
                 }}
               />
@@ -213,9 +222,7 @@ export default function User() {
                   if (userInfo.role === "third-party") {
                     navigate("/third-party");
                   }
-                  
-                }
-              }
+                }}
               />
             </Box>
             <Typography variant="h6">用户信息</Typography>
@@ -247,9 +254,13 @@ export default function User() {
             </Tooltip>
             <Divider />
             <nav aria-label="secondary mailbox folders">
-              <List>
-                {btnlist.map((text, index) => (
-                  <ListItem disablePadding key={text}>
+              <List sx={{ width: "100%" }}>
+                {btnlist.map((text) => (
+                  <ListItem
+                    disablePadding
+                    key={text}
+                    sx={{ mb: { xs: 1, md: 2 } }}
+                  >
                     <ListItemButton
                       onClick={() => setSelectedIndex(text)}
                       sx={{
@@ -297,65 +308,95 @@ export default function User() {
           sx={{
             display: "flex",
             flexDirection: "column",
-            gap: 1,
-            width: "70%",
-            justifySelf: "start",
-            alignItems: "center",
+            gap: { xs: 1, md: 2 },
+            width: { xs: "100%", md: "70%" },
           }}
         >
           <Card variant="outlined" sx={{ width: "100%" }}>
-            <CardContent>
+            <CardContent sx={{ p: { xs: 1, md: 2 } }}>
               {selectedIndex === "消息列表" ? (
                 <Typography variant="h6">消息列表</Typography>
-              ) : 
-              selectedIndex === "购物车" ? (
+              ) : selectedIndex === "购物车" ? (
                 <Typography variant="h6">购物车</Typography>
-              ) : 
-              selectedIndex === "已收藏的商品" ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+              ) : selectedIndex === "已收藏的商品" ? (
+                <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
                   {favorites.length > 0 ? (
                     favorites.map((favorite: any) => (
-                      <Card 
+                      <Card
                         key={favorite.favorite_id}
                         sx={{
-                          display: 'flex',
-                          p: 2,
-                          '&:hover': {
+                          display: "flex",
+                          flexDirection: { xs: "column", sm: "row" },
+                          p: { xs: 1, sm: 2 },
+                          "&:hover": {
                             boxShadow: 6,
-                            transition: 'box-shadow 0.3s ease-in-out'
-                          }
+                            transition: "box-shadow 0.3s ease-in-out",
+                          },
                         }}
                       >
                         <CardMedia
                           component="img"
-                          sx={{ 
-                            width: 140,
-                            height: 140,
-                            objectFit: 'cover',
-                            borderRadius: 1
+                          sx={{
+                            width: { xs: "100%", sm: 140 },
+                            height: { xs: 200, sm: 140 },
+                            objectFit: "cover",
+                            borderRadius: 1,
                           }}
                           image={favorite.product_image}
                           alt={favorite.product_name}
                         />
-                        <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, ml: 2 }}>
-                          <CardContent sx={{ flex: '1 0 auto', p: 0 }}>
-                            <Typography variant="h6" component="div" gutterBottom>
+                        <Box
+                          sx={{
+                            display: "flex",
+                            flexDirection: "column",
+                            flex: 1,
+                            ml: { xs: 0, sm: 2 },
+                            mt: { xs: 1, sm: 0 },
+                          }}
+                        >
+                          <CardContent sx={{ flex: "1 0 auto", p: 0 }}>
+                            <Typography
+                              variant="h6"
+                              component="div"
+                              gutterBottom
+                            >
                               {favorite.product_name}
                             </Typography>
-                            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                              <Chip 
+                            <Box
+                              sx={{
+                                display: "flex",
+                                alignItems: "center",
+                                mb: 1,
+                              }}
+                            >
+                              <Chip
                                 label={favorite.platform_name}
                                 size="small"
                                 color="primary"
                                 sx={{ mr: 1 }}
                               />
-                              <Typography variant="caption" color="text.secondary">
-                                收藏于 {new Date(favorite.added_at).toLocaleDateString()}
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                              >
+                                收藏于{" "}
+                                {new Date(
+                                  favorite.added_at
+                                ).toLocaleDateString()}
                               </Typography>
                             </Box>
-                            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+                            <Box
+                              sx={{
+                                display: "flex",
+                                gap: 2,
+                                alignItems: "center",
+                              }}
+                            >
                               <Box>
-                                <Typography variant="body2" color="text.secondary">
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                >
                                   收藏时价格
                                 </Typography>
                                 <Typography variant="h6" color="primary">
@@ -363,18 +404,27 @@ export default function User() {
                                 </Typography>
                               </Box>
                               <Box>
-                                <Typography variant="body2" color="text.secondary">
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                >
                                   当前价格
                                 </Typography>
-                                <Typography 
-                                  variant="h6" 
-                                  color={Number(favorite.current_price) < Number(favorite.price_at_favorite) ? "error" : "success"}
+                                <Typography
+                                  variant="h6"
+                                  color={
+                                    Number(favorite.current_price) <
+                                    Number(favorite.price_at_favorite)
+                                      ? "error"
+                                      : "success"
+                                  }
                                 >
                                   ¥{favorite.current_price}
                                 </Typography>
                               </Box>
-                              {Number(favorite.current_price) < Number(favorite.price_at_favorite) && (
-                                <Chip 
+                              {Number(favorite.current_price) <
+                                Number(favorite.price_at_favorite) && (
+                                <Chip
                                   label={`降价 ¥${(Number(favorite.price_at_favorite) - Number(favorite.current_price)).toFixed(2)}`}
                                   color="error"
                                   size="small"
@@ -382,12 +432,18 @@ export default function User() {
                               )}
                             </Box>
                           </CardContent>
-                          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1 }}>
+                          <Box
+                            sx={{
+                              display: "flex",
+                              justifyContent: "flex-end",
+                              mt: 1,
+                            }}
+                          >
                             <Button
                               variant="outlined"
                               color="primary"
                               size="small"
-                              onClick={() => console.log("favorite",favorite)}
+                              onClick={() => console.log("favorite", favorite)}
                               sx={{ mr: 1 }}
                             >
                               查看商品
@@ -396,7 +452,9 @@ export default function User() {
                               variant="outlined"
                               color="error"
                               size="small"
-                              onClick={() => handleUnfavorite(favorite.product_id)}
+                              onClick={() =>
+                                handleUnfavorite(favorite.product_id)
+                              }
                               startIcon={<FavoriteIcon />}
                             >
                               取消收藏
@@ -406,21 +464,18 @@ export default function User() {
                       </Card>
                     ))
                   ) : (
-                    <Box 
-                      sx={{ 
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        alignItems: 'center',
-                        py: 4 
-                      }}
-                    >
-                      <Typography variant="h6" color="text.secondary" gutterBottom>
+                    <Box sx={{ textAlign: "center", py: { xs: 2, md: 4 } }}>
+                      <Typography
+                        variant="h6"
+                        color="text.secondary"
+                        gutterBottom
+                      >
                         暂无收藏商品
                       </Typography>
-                      <Button 
-                        variant="contained" 
+                      <Button
+                        variant="contained"
                         color="primary"
-                        onClick={() => navigate('/root/campaign')}
+                        onClick={() => navigate("/root/campaign")}
                         sx={{ mt: 2 }}
                       >
                         去逛逛
@@ -428,9 +483,8 @@ export default function User() {
                     </Box>
                   )}
                 </Box>
-              ) : 
-                selectedIndex === "我上架的" ? (
-                  <Typography variant="h6">我上架的</Typography>
+              ) : selectedIndex === "我上架的" ? (
+                <Typography variant="h6">我上架的</Typography>
               ) : selectedIndex === "申请成为商家" ? (
                 <Application />
               ) : (

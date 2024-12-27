@@ -9,7 +9,7 @@ import {
   ListItemButton,
 } from "@mui/material";
 import Alert from "@mui/material/Alert";
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from "react-router-dom";
 import Backdrop from "@mui/material/Backdrop";
 import Box from "@mui/material/Box";
 import Card from "@mui/material/Card";
@@ -33,19 +33,23 @@ import {
   forwardRef,
   Ref,
 } from "react";
-import "./MainContent.css"
-import { useLocation } from 'react-router-dom';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import { API_CONFIG } from '../../../config/api.config';
-import { backendAxios } from '../../../config/api.config';
+import "./MainContent.css";
+import { useLocation } from "react-router-dom";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import { API_CONFIG } from "../../../config/api.config";
+import { backendAxios } from "../../../config/api.config";
 
 import { Commodity } from "../../../types/interfaces";
+import Pagination from "@mui/material/Pagination";
 
 interface SearchProps {
   setCommodities: React.Dispatch<React.SetStateAction<Commodity[]>>;
-  setAllCommodities: React.Dispatch<React.SetStateAction<Commodity[]>>;
   setLoad: React.Dispatch<React.SetStateAction<boolean>>;
+  onSearch: (query: string) => void;
+  onMallOptionsChange?: (
+    options: Array<{ mall_name: string; mall_id: number }>
+  ) => void;
 }
 
 /**
@@ -66,17 +70,22 @@ function convertToHttpUrl(localPath: string) {
     return null;
   }
 
-  const relativePath = normalizedPath.substring(keyDirIndex + keyDir.length + 1);
+  const relativePath = normalizedPath.substring(
+    keyDirIndex + keyDir.length + 1
+  );
   const httpUrl = `${baseUrl}${relativePath}`;
   console.log("转换后的 HTTP URL:", httpUrl);
   return httpUrl;
 }
 
 export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
-  const { setAllCommodities, setCommodities, setLoad } = props;
+  const { setCommodities, setLoad, onSearch, onMallOptionsChange } = props;
   const [inputValue, setInputValue] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [mallOptions, setMallOptions] = useState<
+    Array<{ mall_name: string; mall_id: number }>
+  >([]);
 
   const containerRef = useRef<HTMLDivElement | null>(null);
 
@@ -97,7 +106,8 @@ export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
 
     setInputValue(suggestion);
     setShowSuggestions(false); // 点击推荐项时隐藏推荐表
-    searchProducts(suggestion); //直接用suggestion作为参数传给searchProducts去搜索，而非让它用当前的InputValue，避免闭包陷阱
+    searchProducts(suggestion);
+    onSearch(suggestion);
   };
 
   //搜索推荐
@@ -121,15 +131,34 @@ export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
     if (event.key === "Enter") {
       setShowSuggestions(false); // 点击推荐项时隐藏推荐表
       searchProducts(inputValue);
+      onSearch(inputValue);
     }
   };
 
   // 搜索商品
-  const searchProducts = async (query: string) => {
+  const searchProducts = async (query: string, mall_id?: string) => {
     console.log("开始搜索：", query);
 
     try {
       setLoad(true);
+      // 获取平台筛选条件
+      const screeningResponse = await axios.get(
+        "http://121.36.199.66:80/search/ajax_get_screening_conditions",
+        {
+          params: {
+            keywords: query,
+          },
+        }
+      );
+
+      // 获取前四个平台作为筛选选项
+      const newMallOptions = screeningResponse.data.data.mall.slice(0, 4);
+      setMallOptions(newMallOptions);
+      if (onMallOptionsChange) {
+        onMallOptionsChange(newMallOptions);
+      }
+
+      // 搜索商品列表
       const response = await axios.get(
         "http://121.36.199.66:80/search/ajax_search_product_list",
         {
@@ -138,14 +167,14 @@ export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
             sort: "综合",
             price_min: "",
             price_max: "",
-            mall_id: "",
+            mall_id: mall_id || "",
             category_id: "",
           },
         }
       );
       setTimeout(() => {
         setLoad(false);
-      }, 1000); // 延迟 700 毫秒
+      }, 1000);
 
       const updatedCommodities = response.data.data.map(
         (commodity: Commodity) => {
@@ -157,7 +186,7 @@ export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
 
           return {
             ...commodity,
-            article_title: truncatedTitle, // 替换为截断后的标题
+            article_title: truncatedTitle,
             mall_logo_url: commodity.mall_logo_url.replace(
               "https://",
               "http://121.36.199.66:80/image_proxy/"
@@ -169,10 +198,8 @@ export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
           };
         }
       );
-      console.log("搜索商品：", updatedCommodities);
 
       setCommodities(updatedCommodities);
-      setAllCommodities(updatedCommodities);
     } catch (error) {
       console.error("Error fetching products:", error);
     }
@@ -181,6 +208,7 @@ export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
   // 暴露给父组件的接口
   useImperativeHandle(ref, () => ({
     searchProducts,
+    mallOptions,
   }));
 
   //判断是否点到外面
@@ -297,15 +325,13 @@ export default function MainContent() {
   const [registerSuccess, setRegisterSuccess] = useState(false);
   const location = useLocation();
   const [favorites, setFavorites] = useState<Set<number>>(new Set());
-
-  const handleIconClick = () => {
-    console.log("点击");
-    console.log(searchRef.current);
-    if (searchRef.current) {
-      console.log(searchRef.current);
-      searchRef.current.searchProducts(); // 调用子组件的 searchProducts 方法
-    }
-  };
+  const [page, setPage] = useState(1);
+  const itemsPerPage = 10;
+  const [mallOptions, setMallOptions] = useState<
+    Array<{ mall_name: string; mall_id: number }>
+  >([]);
+  const [currentQuery, setCurrentQuery] = useState("");
+  const [isChipsExpanded, setIsChipsExpanded] = useState(false);
 
   const handleClose = (
     event?: React.SyntheticEvent | Event,
@@ -393,79 +419,7 @@ export default function MainContent() {
   ]); // Campaign[] is an array of Campaign objects
 
   // 原始 campaigns 数据状态
-  const [allCommodity, setAllCommodity] = useState<Commodity[]>([
-    {
-      article_title:
-        "乐扣乐扣保温杯男士316不锈钢大容量杯子女士高颜值水杯双饮保温杯 【双饮口】摩卡棕1000ML",
-      article_mall: "京东",
-      mall_logo_url:
-        "http://121.36.199.66:80/image_proxy/qny.smzdm.com/202201/26/61f0f374020dd3641.png",
-      article_price: 109,
-      wiki_id: 46253720,
-      hash_id: "4qeprz0",
-      comment_count: 0,
-      page_price: 109,
-      article_pic:
-        "http://121.36.199.66:80/image_proxy/qny.smzdm.com/202411/14/6735d4b5a43839510.png",
-      link: "https://item.jd.com/100066625685.html",
-      go_link: "https://go.smzdm.com/8500b93eb82da62b/ca_aa_hy_0_0_0_0_0_0",
-      coupon: [],
-      type: "百科",
-      mall_id: 183,
-      article_tag_list: [],
-      show_btn: 0,
-    },
-    {
-      article_title:
-        "日康宝宝水杯儿童吸管杯幼儿喝水杯子婴儿6个月以上外出学饮杯",
-      article_mall: "拼多多",
-      mall_logo_url:
-        "http://121.36.199.66:80/image_proxy/qneimg.smzdm.com/201907/09/5d246a5a419331130.png",
-      article_price: 36.99,
-      wiki_id: 46252172,
-      hash_id: "1xdep61",
-      comment_count: 0,
-      page_price: 36.99,
-      article_pic:
-        "http://121.36.199.66:80/image_proxy/y.zdmimg.com/202411/15/6736bed0df6e11463.jpg",
-      link: "https://mobile.yangkeduo.com/goods.html?goods_id=594220115623",
-      go_link: "https://go.smzdm.com/05e406d9c5d32be6/ca_aa_hy_0_0_0_0_0_0",
-      coupon: [],
-      type: "百科",
-      mall_id: 8645,
-      article_tag_list: [],
-      show_btn: 0,
-    },
-    {
-      article_title:
-        "BABLOV花伴森保温杯女士吸管杯316不锈钢水杯便携水壶户外保温杯 （双饮盖+杯套）航海宝藏号550ml",
-      article_mall: "京东",
-      mall_logo_url:
-        "http://121.36.199.66:80/image_proxy/qny.smzdm.com/202201/26/61f0f374020dd3641.png",
-      article_price: 149,
-      wiki_id: 46253281,
-      hash_id: "re7d990",
-      comment_count: 0,
-      page_price: 149,
-      article_pic:
-        "http://121.36.199.66:80/image_proxy/qny.smzdm.com/202411/15/673700b62c9118652.jpg",
-      link: "https://item.jd.com/100148321150.html",
-      go_link: "https://go.smzdm.com/9cfb5324e23e8b74/ca_aa_hy_0_0_0_0_0_0",
-      coupon: [
-        {
-          title: "满61元减3元",
-          is_show: 1,
-          link: "https://coupon.m.jd.com/coupons/show.action?linkKey=AAROH_xIpeffAs_-naABEFoeZEdRXlKcZiVn94lCr-OuUzW_cMk0dn8zx0pcm4Nn7nRqqB2QQYyPKvG4MEr3acoHOWbqEA",
-          go_link: "https://go.smzdm.com/0527efdc46243557/ca_aa_hy_0_0_0_0_0_0",
-          article_mall: "京东",
-        },
-      ],
-      type: "百科",
-      mall_id: 183,
-      article_tag_list: ["低于双11"],
-      show_btn: 2,
-    },
-  ]);
+  const [allCommodity, setAllCommodity] = useState<Commodity[]>([]);
 
   // 原始 campaigns 数据状态
   const [load, setLoad] = React.useState(true);
@@ -484,25 +438,17 @@ export default function MainContent() {
   }, []);
 
   // 处理点击 Chip 的逻辑
-  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
-    const selectedLabel = (event.target as HTMLElement).innerText;
-    // document.body.style.backgroundColor = '';
-
-    if (selectedLabel === "All | 综合") {
-      // 显示所有 campaign
-      setCommodities(allCommodity);
+  const handleClickChip = (mall_id?: number) => {
+    if (!mall_id) {
+      if (searchRef.current) {
+        searchRef.current.searchProducts(currentQuery);
+      }
     } else {
-      // 根据 platform 进行筛选
-      setCommodities(
-        allCommodity.filter(
-          (commodity) =>
-            commodity.article_mall === selectedLabel.split(" ")[0] ||
-            commodity.article_mall === selectedLabel.split(" ")[2]
-        )
-      );
+      if (searchRef.current) {
+        searchRef.current.searchProducts(currentQuery, mall_id.toString());
+      }
     }
   };
-
   // 处理点击 Detail 的逻辑
   const handleClickDetail =
     (commodity: Commodity) => async (event: React.MouseEvent<HTMLElement>) => {
@@ -544,37 +490,40 @@ export default function MainContent() {
   useEffect(() => {
     const state = location.state as { from: string; success?: boolean } | null;
     console.log("state:", state);
-    if (state?.from === 'login' && state.success) {
+    if (state?.from === "login" && state.success) {
       setLoginSuccess(true);
       setTimeout(() => setLoginSuccess(false), 6000);
-    } else if (state?.from === 'register' && state.success) {
+    } else if (state?.from === "register" && state.success) {
       setRegisterSuccess(true);
       setTimeout(() => setRegisterSuccess(false), 6000);
     }
   }, [location]);
 
-  const handleFavorite = async (event: React.MouseEvent, commodity: Commodity) => {
+  const handleFavorite = async (
+    event: React.MouseEvent,
+    commodity: Commodity
+  ) => {
     event.stopPropagation();
-    
-    const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+
+    const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
     if (!userInfo.user_id) {
-      navigate('/signIn');
+      navigate("/signIn");
       return;
     }
 
     try {
       if (favorites.has(commodity.wiki_id)) {
-        const response = await backendAxios.post('/user/remove_favorite/', {
+        const response = await backendAxios.post("/user/remove_favorite/", {
           user_id: userInfo.user_id,
-          product_id: commodity.wiki_id
+          product_id: commodity.wiki_id,
         });
-        if (response.data.status === 'success') {
+        if (response.data.status === "success") {
           const newFavorites = new Set(favorites);
           newFavorites.delete(commodity.wiki_id);
           setFavorites(newFavorites);
         }
       } else {
-        const response = await backendAxios.post('/user/add_favorite/', {
+        const response = await backendAxios.post("/user/add_favorite/", {
           user_id: userInfo.user_id,
           product_id: commodity.wiki_id,
           platform_id: commodity.mall_id,
@@ -582,40 +531,51 @@ export default function MainContent() {
           article_mall: commodity.article_mall,
           article_title: commodity.article_title,
           article_pic: commodity.article_pic,
-          link: commodity.link
+          link: commodity.link,
         });
-        if (response.data.status === 'success') {
+        if (response.data.status === "success") {
           const newFavorites = new Set(favorites);
           newFavorites.add(commodity.wiki_id);
           setFavorites(newFavorites);
         }
       }
     } catch (error) {
-      console.error('收藏操作失败:', error);
+      console.error("收藏操作失败:", error);
     }
   };
 
   useEffect(() => {
     const fetchFavorites = async () => {
-      const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+      const userInfo = JSON.parse(localStorage.getItem("userInfo") || "{}");
       if (!userInfo.user_id) return;
 
       try {
-        const response = await backendAxios.get(`/user/get_favorites/?user_id=${userInfo.user_id}`);
-        if (response.data.status === 'success') {
-          const favSet = new Set(response.data.data.map((fav: any) => Number(fav.product_id)));
+        const response = await backendAxios.get(
+          `/user/get_favorites/?user_id=${userInfo.user_id}`
+        );
+        if (response.data.status === "success") {
+          const favSet = new Set(
+            response.data.data.map((fav: any) => Number(fav.product_id))
+          );
           setFavorites(favSet as Set<number>);
         }
       } catch (error) {
-        console.error('获取收藏列表失败:', error);
+        console.error("获取收藏列表失败:", error);
       }
     };
 
     fetchFavorites();
   }, []);
 
+  // 处理展开/收起分类的逻辑
+  const toggleChips = () => {
+    setIsChipsExpanded(!isChipsExpanded);
+  };
+
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
+    <Box
+      sx={{ display: "flex", flexDirection: "column", gap: { xs: 2, md: 4 } }}
+    >
       <Snackbar open={open} autoHideDuration={6000} onClose={handleClose}>
         <Alert
           onClose={handleClose}
@@ -627,11 +587,11 @@ export default function MainContent() {
           wallet.
         </Alert>
       </Snackbar>
-      <Snackbar 
-        open={loginSuccess} 
-        autoHideDuration={6000} 
+      <Snackbar
+        open={loginSuccess}
+        autoHideDuration={6000}
         onClose={() => setLoginSuccess(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           onClose={() => setLoginSuccess(false)}
@@ -643,11 +603,11 @@ export default function MainContent() {
         </Alert>
       </Snackbar>
 
-      <Snackbar 
-        open={registerSuccess} 
-        autoHideDuration={6000} 
+      <Snackbar
+        open={registerSuccess}
+        autoHideDuration={6000}
         onClose={() => setRegisterSuccess(false)}
-        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
       >
         <Alert
           onClose={() => setRegisterSuccess(false)}
@@ -665,7 +625,15 @@ export default function MainContent() {
         <CircularProgress color="inherit" />
       </Backdrop>
       <div>
-        <Typography variant="h2" gutterBottom>
+        <Typography
+          sx={{
+            fontSize: { xs: "1.5rem", sm: "2rem", md: "2.5rem" },
+            lineHeight: { xs: 1.3, md: 1.5 },
+            mb: { xs: 1, md: 2 },
+          }}
+          variant="h2"
+          gutterBottom
+        >
           Hotest&Latest <b style={{ color: "#ff914d" }}>PriceScout</b> Commodity
           <br /> | 最热门&最新 商品
         </Typography>
@@ -674,23 +642,37 @@ export default function MainContent() {
       <Box
         sx={{
           display: "flex",
-          flexDirection: "row",
-          gap: 1,
-          width: { xs: "100%", md: "fit-content" },
-          position: "relative", // 保持推荐列表正确定位
+          flexDirection: { xs: "column", sm: "row" },
+          gap: { xs: 1, md: 1 },
+          width: "100%",
+          position: "relative",
           overflow: "visible",
         }}
       >
         <Search
-          ref={searchRef} //重要，searchRef的绑定
-          setAllCommodities={setAllCommodity}
+          ref={searchRef}
           setCommodities={setCommodities}
           setLoad={setLoad}
+          onSearch={(query: string) => {
+            setCurrentQuery(query);
+            if (searchRef.current) {
+              searchRef.current.searchProducts(query);
+            }
+          }}
+          onMallOptionsChange={setMallOptions}
         />
         <IconButton
           size="small"
           aria-label="RSS feed"
-          onClick={handleIconClick}
+          onClick={() => {
+            if (currentQuery) {
+              searchRef.current?.searchProducts(currentQuery);
+            }
+          }}
+          sx={{
+            alignSelf: { xs: "center", sm: "flex-start" },
+            display: { xs: "none", sm: "flex" }, // 在手机端隐藏
+          }}
         >
           <RssFeedRoundedIcon />
         </IconButton>
@@ -698,230 +680,295 @@ export default function MainContent() {
       <Box
         sx={{
           display: "flex",
-          flexDirection: { xs: "column-reverse", md: "row" },
+          flexDirection: "column",
           width: "100%",
-          justifyContent: "space-between",
-          alignItems: { xs: "start", md: "center" },
-          gap: 0,
-          overflow: "auto",
+          gap: 1,
         }}
       >
+        <Button
+          onClick={toggleChips}
+          sx={{
+            display: { xs: "flex", sm: "none" },
+            justifyContent: "space-between",
+            alignItems: "center",
+            px: 2,
+            py: 1,
+            bgcolor: "background.paper",
+            borderRadius: 1,
+            boxShadow: 1,
+          }}
+        >
+          <Typography variant="button">
+            {isChipsExpanded ? "收起分类" : "展开分类"}
+          </Typography>
+          <Box
+            component="span"
+            sx={{
+              transform: isChipsExpanded ? "rotate(180deg)" : "rotate(0deg)",
+              transition: "transform 0.3s",
+            }}
+          >
+            ▼
+          </Box>
+        </Button>
+
         <Box
           sx={{
-            display: "inline-flex",
-            flexDirection: "row",
-            gap: 0,
-            overflow: "auto",
+            display: "flex",
+            flexDirection: { xs: "column", sm: "row" },
+            flexWrap: { xs: "nowrap", sm: "wrap" },
+            gap: 1,
+            maxHeight: {
+              xs: isChipsExpanded ? "none" : "0px",
+              sm: "none",
+            },
+            overflow: "hidden",
+            visibility: {
+              xs: isChipsExpanded ? "visible" : "hidden",
+              sm: "visible",
+            },
+            opacity: {
+              xs: isChipsExpanded ? 1 : 0,
+              sm: 1,
+            },
+            transition: "all 0.3s ease-in-out",
           }}
         >
           <Chip
-            onClick={handleClick}
+            onClick={() => handleClickChip()}
             size="medium"
             label="All | 综合"
-            sx={
-              {
-                // backgroundColor: 'transparent',
-                // border: 'none',
-              }
-            }
-          />
-          <Chip
-            onClick={handleClick}
-            size="medium"
-            label="JD | 京东"
             sx={{
+              width: { xs: "100%", sm: "auto" },
+              height: { xs: "36px", sm: "32px" },
               backgroundColor: "transparent",
-              border: "none",
+              border: "1px solid rgba(0, 0, 0, 0.12)",
+              "&:hover": {
+                backgroundColor: "rgba(0, 0, 0, 0.04)",
+              },
+              mb: { xs: 0.5, sm: 0 },
             }}
           />
-          <Chip
-            onClick={handleClick}
-            size="medium"
-            label="Tmall | 天猫"
-            sx={{
-              backgroundColor: "transparent",
-              border: "none",
-            }}
-          />
-          <Chip
-            onClick={handleClick}
-            size="medium"
-            label="Taobao | 淘宝"
-            sx={{
-              backgroundColor: "transparent",
-              border: "none",
-            }}
-          />
-          <Chip
-            onClick={handleClick}
-            size="medium"
-            label="Pinduoduo | 拼多多"
-            sx={{
-              backgroundColor: "transparent",
-              border: "none",
-            }}
-          />
-          <Chip
-            onClick={handleClick}
-            size="medium"
-            label="Others | 其他"
-            sx={{
-              backgroundColor: "transparent",
-              border: "none",
-            }}
-          />
+          {mallOptions.map((mall) => (
+            <Chip
+              key={mall.mall_id}
+              onClick={() => handleClickChip(mall.mall_id)}
+              size="medium"
+              label={`${mall.mall_name}`}
+              sx={{
+                width: { xs: "100%", sm: "auto" },
+                height: { xs: "36px", sm: "32px" },
+                backgroundColor: "transparent",
+                border: "1px solid rgba(0, 0, 0, 0.12)",
+                "&:hover": {
+                  backgroundColor: "rgba(0, 0, 0, 0.04)",
+                },
+                mb: { xs: 0.5, sm: 0 },
+              }}
+            />
+          ))}
         </Box>
       </Box>
       {commodities.length >= 1 ? (
-        commodities.map((commodity) => (
-          <Card
-            key={commodity.hash_id}
-            variant="outlined"
-            onClick={() => handleNavigate(commodity.go_link)}
-            sx={{
-              "&:hover": {
-                bgcolor: "rgba(0, 0, 0, 0.04)",
-              },
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: 2,
-              borderRadius: 2,
-              boxShadow: 1,
-              gap: 2,
-              overflow: "hidden",
-            }}
-          >
-            {/* 商品图片 */}
-            <CardMedia
-              component="img"
-              alt={commodity.article_title}
-              src={commodity.article_pic}
-              sx={{
-                width: 100,
-                height: 100,
-                objectFit: "cover",
-                borderRadius: 2,
-              }}
-            />
-            {/* 商品信息 */}
-            <CardContent
-              sx={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "space-between",
-                padding: 0,
-              }}
-            >
-              <Typography
-                variant="subtitle2"
-                color="primary"
+        <>
+          {commodities
+            .slice((page - 1) * itemsPerPage, page * itemsPerPage)
+            .map((commodity) => (
+              <Card
+                key={commodity.hash_id}
+                variant="outlined"
+                onClick={() => handleNavigate(commodity.go_link)}
                 sx={{
                   display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  fontWeight: "bold",
+                  flexDirection: { xs: "column", sm: "row" },
+                  alignItems: { xs: "stretch", sm: "center" },
+                  justifyContent: "space-between",
+                  padding: { xs: 1, sm: 2 },
+                  borderRadius: 2,
+                  boxShadow: 1,
+                  gap: { xs: 1, sm: 2 },
+                  overflow: "hidden",
                 }}
               >
-                <img
-                  src={commodity.mall_logo_url}
-                  alt={commodity.article_mall}
-                  style={{
-                    width: 16,
-                    height: 16,
-                    borderRadius: "50%",
+                {/* 商品图片 */}
+                <CardMedia
+                  component="img"
+                  alt={commodity.article_title}
+                  src={commodity.article_pic}
+                  sx={{
+                    width: { xs: "100%", sm: 100 },
+                    height: { xs: 200, sm: 100 },
+                    objectFit: "cover",
+                    borderRadius: 2,
                   }}
                 />
-                {commodity.article_mall}
-              </Typography>
-              <Typography
-                variant="subtitle1"
-                noWrap
-                title={commodity.article_title}
-                sx={{ fontWeight: "bold", lineHeight: 1.5, mt: 1 }}
-              >
-                {commodity.article_title}
-              </Typography>
-              <Typography
-                variant="body1"
-                color="error"
-                sx={{ fontWeight: "bold", fontSize: "1.2rem", mt: 1 }}
-              >
-                ¥{commodity.article_price} 到手价
-              </Typography>
-              {/* 优惠信息 */}
-              {commodity.coupon.length > 0 && (
-                <Box sx={{ display: "flex", gap: 1, mt: 1, flexWrap: "wrap" }}>
-                  {commodity.coupon.map((coupon) => (
-                    <Chip
-                      key={coupon.link}
-                      label={coupon.title}
-                      color="success"
-                      size="small"
-                      component="a"
-                      href={coupon.go_link}
-                      target="_blank"
-                      clickable
-                      sx={{ fontSize: "0.75rem" }}
-                    />
-                  ))}
-                </Box>
-              )}
-            </CardContent>
-            {/* 按钮区域 */}
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 1,
-                alignItems: "center",
-              }}
-            >
-              {!(
-                commodity.show_btn === 1 &&
-                commodity.article_tag_list[0] === "低于常卖价"
-              ) && (
-                  <Button
-                    variant="outlined"
+
+                {/* 商品信息 */}
+                <CardContent
+                  sx={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    justifyContent: "space-between",
+                    padding: { xs: 1, sm: 0 },
+                  }}
+                >
+                  <Typography
+                    variant="subtitle2"
                     color="primary"
-                    size="small"
-                    sx={{ textTransform: "none", fontWeight: "bold",marginBottom: 1}}
-                    onClick={handleClickDetail(commodity)}
-                  >
-                    价格趋势
-                  </Button>
-                )}
-              {commodity.show_btn === 1 &&
-                commodity.article_tag_list[0] === "低于常卖价" && (
-                  <Button
-                    color="error"
-                    onClick={handleClickDetail(commodity)}
                     sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 1,
                       fontWeight: "bold",
-                      border: "1px solid red",
-                      padding: "4px 8px",
-                      borderRadius: 1,
-                      textAlign: "center",
                     }}
                   >
-                    低于常卖价
-                  </Button>
-                )}
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pb: 1 }}>
-              <IconButton 
-                onClick={(e) => handleFavorite(e, commodity)}
-                color={favorites.has(commodity.wiki_id) ? "primary" : "default"}
-              >
-                {favorites.has(commodity.wiki_id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-              </IconButton>
-            </Box>
-          </Card>
-        ))
+                    <img
+                      src={commodity.mall_logo_url}
+                      alt={commodity.article_mall}
+                      style={{
+                        width: 16,
+                        height: 16,
+                        borderRadius: "50%",
+                      }}
+                    />
+                    {commodity.article_mall}
+                  </Typography>
+                  <Typography
+                    variant="subtitle1"
+                    noWrap
+                    title={commodity.article_title}
+                    sx={{ fontWeight: "bold", lineHeight: 1.5, mt: 1 }}
+                  >
+                    {commodity.article_title}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    color="error"
+                    sx={{ fontWeight: "bold", fontSize: "1.2rem", mt: 1 }}
+                  >
+                    ¥{commodity.article_price} 到手价
+                  </Typography>
+                  {/* 优惠信息 */}
+                  {commodity.coupon.length > 0 && (
+                    <Box
+                      sx={{ display: "flex", gap: 1, mt: 1, flexWrap: "wrap" }}
+                    >
+                      {commodity.coupon.map((coupon) => (
+                        <Chip
+                          key={coupon.link}
+                          label={coupon.title}
+                          color="success"
+                          size="small"
+                          component="a"
+                          href={coupon.go_link}
+                          target="_blank"
+                          clickable
+                          sx={{ fontSize: "0.75rem" }}
+                        />
+                      ))}
+                    </Box>
+                  )}
+                </CardContent>
+
+                {/* 按钮区域 */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "row", sm: "column" },
+                    gap: 1,
+                    alignItems: "center",
+                    justifyContent: { xs: "space-between", sm: "center" },
+                    width: { xs: "100%", sm: "auto" },
+                    p: { xs: 1, sm: 0 },
+                  }}
+                >
+                  {!(
+                    commodity.show_btn === 1 &&
+                    commodity.article_tag_list[0] === "低于常卖价"
+                  ) && (
+                    <Button
+                      variant="outlined"
+                      color="primary"
+                      size="small"
+                      sx={{
+                        textTransform: "none",
+                        fontWeight: "bold",
+                        marginBottom: 1,
+                      }}
+                      onClick={handleClickDetail(commodity)}
+                    >
+                      价格趋势
+                    </Button>
+                  )}
+                  {commodity.show_btn === 1 &&
+                    commodity.article_tag_list[0] === "低于常卖价" && (
+                      <Button
+                        color="error"
+                        onClick={handleClickDetail(commodity)}
+                        sx={{
+                          fontWeight: "bold",
+                          border: "1px solid red",
+                          padding: "4px 8px",
+                          borderRadius: 1,
+                          textAlign: "center",
+                        }}
+                      >
+                        低于常卖价
+                      </Button>
+                    )}
+                </Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    px: 2,
+                    pb: 1,
+                  }}
+                >
+                  <IconButton
+                    onClick={(e) => handleFavorite(e, commodity)}
+                    color={
+                      favorites.has(commodity.wiki_id) ? "primary" : "default"
+                    }
+                  >
+                    {favorites.has(commodity.wiki_id) ? (
+                      <FavoriteIcon />
+                    ) : (
+                      <FavoriteBorderIcon />
+                    )}
+                  </IconButton>
+                </Box>
+              </Card>
+            ))}
+
+          {/* 分页控制器 */}
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              mt: { xs: 2, md: 4 },
+              mb: { xs: 4, md: 2 },
+            }}
+          >
+            <Pagination
+              count={Math.ceil(commodities.length / itemsPerPage)}
+              page={page}
+              onChange={(event, value) => setPage(value)}
+              color="primary"
+              size="medium"
+              sx={{
+                "& .MuiPaginationItem-root": {
+                  fontSize: { xs: "0.8rem", sm: "1rem" },
+                },
+              }}
+            />
+          </Box>
+        </>
       ) : (
         <Typography variant="body1" color="text.secondary" textAlign="center">
-          没有找到相关商品，请尝试更精确的搜索。
+          没有找到相关商品，请尝试���精确的搜索。
         </Typography>
       )}
       {detail === true && curdetail !== null ? (
@@ -931,9 +978,9 @@ export default function MainContent() {
           onClose={() => setDetail(false)}
           PaperProps={{
             sx: {
-              height: "85vh", // 设置页面高度
-              borderTopLeftRadius: 16,
-              borderTopRightRadius: 16,
+              height: { xs: "95vh", sm: "85vh" },
+              borderTopLeftRadius: { xs: 8, sm: 16 },
+              borderTopRightRadius: { xs: 8, sm: 16 },
             },
           }}
         >
@@ -1054,7 +1101,6 @@ export default function MainContent() {
                 alignItems: "center",
               }}
             >
-
               <Button
                 color="error"
                 onClick={handleClickDetail(curdetail)}
@@ -1068,13 +1114,16 @@ export default function MainContent() {
               >
                 收藏到购物车
               </Button>
-
             </Box>
           </Card>
 
           {/* 历史价格信息 */}
           <Box sx={{ textAlign: "center" }}>
-            <Typography variant="h6">{(pricehis === null || pricehis === "") ? ("正努力帮你获取中....") : ("价格走势(单位：元)")}</Typography>
+            <Typography variant="h6">
+              {pricehis === null || pricehis === ""
+                ? "正努力帮你获取中...."
+                : "价格走势(单位：元)"}
+            </Typography>
 
             <Box
               sx={{
@@ -1084,10 +1133,10 @@ export default function MainContent() {
                 height: "300px",
                 margin: "0px auto",
                 display: "flex",
-                justifyContent: "center"
+                justifyContent: "center",
               }}
             >
-              {(pricehis === null || pricehis === "") ? (
+              {pricehis === null || pricehis === "" ? (
                 /* From Uiverse.io by vinodjangid07 */
                 <div className="loader">
                   <div className="truckWrapper">
@@ -1225,11 +1274,10 @@ export default function MainContent() {
                     alt="价格趋势"
                     width={1364}
                     height={866}
-                    className='rounded-md bg-white p-2 sm:p-5 md:p-2 shadow-2xl ring-1 ring-gray-900/10'
+                    className="rounded-md bg-white p-2 sm:p-5 md:p-2 shadow-2xl ring-1 ring-gray-900/10"
                   />
                 </div>
               )}
-
             </Box>
           </Box>
         </Drawer>
