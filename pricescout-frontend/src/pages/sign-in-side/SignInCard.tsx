@@ -40,9 +40,9 @@ const Card = styled(MuiCard)(({ theme }) => ({
 // 需要存储的对象
 const userInfo = {
   user_id: 1,
-  user_name: "wenhao",
-  email: "3220104512@zju.edu.cn",
-  role: "user",
+  user_name: "admin",
+  email: "admin@zju.edu.cn",
+  role: "admin",
   token:
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VyX25hbWUiOiJ3ZW5oYW8iLCJleHAiOjE3MzUzNjg4Mjl9.6rigsZDdDLRCKdPuUpxslPM-j_A4nY7wrLs6qHLm-vc",
 };

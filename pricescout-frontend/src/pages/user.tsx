@@ -87,7 +87,7 @@ export default function User() {
   const [selectedIndex, setSelectedIndex] = useState("已收藏的商品");
   const btnlist =
     userInfo.role === "admin"
-      ? ["消息列表", "已收藏的商品", "我上架的", "商家申请审批"]
+      ? ["消息列表", "已收藏的商品", "我上架的", "收藏降价提醒", "商家申请审批"]
       : userInfo.role === "beneficiary"
         ? ["消息列表", "购物车", "已收藏的商品", "我上架的"]
         : ["消息列表", "购物车", "已收藏的商品", "我上架的", "申请成为商家"];
@@ -485,6 +485,58 @@ export default function User() {
                 </Box>
               ) : selectedIndex === "我上架的" ? (
                 <Typography variant="h6">我上架的</Typography>
+              ) : selectedIndex === "收藏降价提醒" ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 2,
+                    alignItems: "center",
+                  }}
+                >
+                  <Typography variant="h6" gutterBottom>
+                    收藏降价提醒
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    color="text.secondary"
+                    gutterBottom
+                  >
+                    系统会每2小时自动检查一次所有用户收藏商品的价格。
+                    当发现价格下降时，系统会自动发送邮件通知对应用户。
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    onClick={async () => {
+                      try {
+                        const response = await backendAxios.post(
+                          "/api/trigger-price-check/"
+                        );
+                        if (response.data.status === "success") {
+                          alert("价格检查已触发，如有降价将发送邮件通知");
+                        } else {
+                          alert("触发失败：" + response.data.message);
+                        }
+                      } catch (error) {
+                        console.error("触发价格检查失败:", error);
+                        alert("触发失败，请稍后重试");
+                      }
+                    }}
+                    sx={{
+                      mt: 2,
+                      px: 4,
+                      py: 1.5,
+                      borderRadius: 2,
+                      boxShadow: 2,
+                      "&:hover": {
+                        boxShadow: 4,
+                      },
+                    }}
+                  >
+                    立即检查所有收藏商品价格
+                  </Button>
+                </Box>
               ) : selectedIndex === "申请成为商家" ? (
                 <Application />
               ) : (

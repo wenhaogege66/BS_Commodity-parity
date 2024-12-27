@@ -152,7 +152,7 @@ export const Search = forwardRef((props: SearchProps, ref: Ref<any>) => {
       );
 
       // 获取前四个平台作为筛选选项
-      const newMallOptions = screeningResponse.data.data.mall.slice(0, 4);
+      const newMallOptions = screeningResponse.data.data.mall.slice(0, 6);
       setMallOptions(newMallOptions);
       if (onMallOptionsChange) {
         onMallOptionsChange(newMallOptions);
@@ -332,6 +332,8 @@ export default function MainContent() {
   >([]);
   const [currentQuery, setCurrentQuery] = useState("");
   const [isChipsExpanded, setIsChipsExpanded] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState("");
 
   const handleClose = (
     event?: React.SyntheticEvent | Event,
@@ -513,6 +515,10 @@ export default function MainContent() {
 
     try {
       if (favorites.has(commodity.wiki_id)) {
+        // 添加确认对话框
+        if (!window.confirm("收藏商品降价后您将收到邮件提示")) {
+          return;
+        }
         const response = await backendAxios.post("/user/remove_favorite/", {
           user_id: userInfo.user_id,
           product_id: commodity.wiki_id,
@@ -521,6 +527,9 @@ export default function MainContent() {
           const newFavorites = new Set(favorites);
           newFavorites.delete(commodity.wiki_id);
           setFavorites(newFavorites);
+          // 添加成功提示
+          setSnackbarMessage("已取消收藏");
+          setSnackbarOpen(true);
         }
       } else {
         const response = await backendAxios.post("/user/add_favorite/", {
@@ -532,15 +541,21 @@ export default function MainContent() {
           article_title: commodity.article_title,
           article_pic: commodity.article_pic,
           link: commodity.link,
+          search_keyword: currentQuery,
         });
         if (response.data.status === "success") {
           const newFavorites = new Set(favorites);
           newFavorites.add(commodity.wiki_id);
           setFavorites(newFavorites);
+          // 添加成功提示
+          setSnackbarMessage("收藏成功！降价时将通过邮件通知您");
+          setSnackbarOpen(true);
         }
       }
     } catch (error) {
       console.error("收藏操作失败:", error);
+      setSnackbarMessage("操作失败，请稍后重试");
+      setSnackbarOpen(true);
     }
   };
 
@@ -616,6 +631,21 @@ export default function MainContent() {
           sx={{ width: "100%" }}
         >
           注册成功！欢迎加入我们
+        </Alert>
+      </Snackbar>
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity="success"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          {snackbarMessage}
         </Alert>
       </Snackbar>
       <Backdrop
@@ -968,7 +998,7 @@ export default function MainContent() {
         </>
       ) : (
         <Typography variant="body1" color="text.secondary" textAlign="center">
-          没有找到相关商品，请尝试���精确的搜索。
+          没有找到相关商品，请尝试精确的搜索。
         </Typography>
       )}
       {detail === true && curdetail !== null ? (
@@ -1102,17 +1132,36 @@ export default function MainContent() {
               }}
             >
               <Button
-                color="error"
-                onClick={handleClickDetail(curdetail)}
+                color={favorites.has(curdetail.wiki_id) ? "primary" : "error"}
+                onClick={(e) => {
+                  handleFavorite(e, curdetail);
+                  if (favorites.has(curdetail.wiki_id)) {
+                    setSnackbarMessage("已取消收藏");
+                    setSnackbarOpen(true);
+                  } else {
+                    setSnackbarMessage("收藏成功！降价时将通过邮件通知您");
+                    setSnackbarOpen(true);
+                  }
+                }}
                 sx={{
                   fontWeight: "bold",
-                  border: "1px solid red",
+                  border: favorites.has(curdetail.wiki_id)
+                    ? "1px solid #1976d2"
+                    : "1px solid #d32f2f",
                   padding: "4px 8px",
                   borderRadius: 1,
                   textAlign: "center",
+                  backgroundColor: favorites.has(curdetail.wiki_id)
+                    ? "rgba(25, 118, 210, 0.04)"
+                    : "rgba(211, 47, 47, 0.04)",
+                  "&:hover": {
+                    backgroundColor: favorites.has(curdetail.wiki_id)
+                      ? "rgba(25, 118, 210, 0.1)"
+                      : "rgba(211, 47, 47, 0.1)",
+                  },
                 }}
               >
-                收藏到购物车
+                {favorites.has(curdetail.wiki_id) ? "取消收藏" : "收藏到购物车"}
               </Button>
             </Box>
           </Card>

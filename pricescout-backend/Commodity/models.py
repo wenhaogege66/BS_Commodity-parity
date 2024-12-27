@@ -51,6 +51,7 @@ class Favorite(models.Model):
     platform = models.ForeignKey(Platform, on_delete=models.CASCADE, related_name="favorites", null=True)  # 收藏时的平台
     note = models.TextField(null=True, blank=True)  # 用户备注
     link = models.URLField(max_length=300, null=True, blank=True)  # 添加链接字段
+    search_keyword = models.CharField(max_length=100, null=True, blank=True)  # 添加搜索关键词字段
 
 # 降价提醒模型
 class PriceAlert(models.Model):

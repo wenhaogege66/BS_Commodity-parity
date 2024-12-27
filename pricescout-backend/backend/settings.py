@@ -174,3 +174,11 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:3000',
     'http://121.36.199.66',  # 添加你的服务器地址
 ]
+
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.zju.edu.cn'  # 修改为浙大邮箱服务器
+EMAIL_PORT = 465  # 修改为465
+EMAIL_USE_SSL = True  # 使用 SSL 而不是 TLS
+EMAIL_HOST_USER = '3220104512@zju.edu.cn'
+EMAIL_HOST_PASSWORD = 'ww71304002ww'  # 需要使用邮箱密码而不是账户密码
