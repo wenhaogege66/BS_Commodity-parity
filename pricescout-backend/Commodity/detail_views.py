@@ -277,40 +277,50 @@ class PriceMonitor:
             except Exception as e:
                 print(f"启动调度器失败: {str(e)}")
 
-    async def check_price_changes(self):
-        # 获取所有收藏商品，使用同步操作
+    def check_price_changes(self):
+        """同步版本的价格检查"""
+        print("开始检查价格变化...")
+        # 获取所有收藏商品
         favorites = Favorite.objects.select_related('product', 'user').all()
         
         for favorite in favorites:
             try:
-                # 使用你现有的搜索API获取最新价格
-                current_price = await self.get_current_price(favorite.product)
+                print(f"检查商品 {favorite.product.name} 的价格...")
+                # 获取最新价格
+                current_price = self.get_current_price(favorite.product)
                 
                 if current_price and current_price < favorite.price_at_favorite:
+                    print(f"发现价格降低：原价 {favorite.price_at_favorite}，现价 {current_price}")
                     # 发送邮件通知
-                    await self.send_price_alert(
+                    self.send_price_alert(
                         favorite.user.email,
                         favorite.product,
                         favorite.price_at_favorite,
                         current_price
                     )
                     
-                    # 更新收藏时的价格，使用同步操作
+                    # 更新收藏时的价格
                     favorite.price_at_favorite = current_price
                     favorite.save()
+                    print(f"已更新价格并发送通知给 {favorite.user.email}")
+                else:
+                    print(f"价格无变化或上涨：原价 {favorite.price_at_favorite}，现价 {current_price if current_price else '获取失败'}")
                     
             except Exception as e:
-                logger.error(f"Error checking price for product {favorite.product.id}: {str(e)}")
+                print(f"检查商品 {favorite.product.name} 时出错: {str(e)}")
                 
-    async def get_current_price(self, product):
-        # 使用你的搜索API
+    def get_current_price(self, product):
+        """同步版本的价格获取"""
         try:
-            response = await httpx.get(
+            # 使用同步的 requests 库
+            import requests
+            response = requests.get(
                 "http://121.36.199.66:80/search/ajax_search_product_list",
                 params={
-                    "keywords": product.favorite_set.first().search_keyword,  # 使用收藏时的搜索关键词
+                    "keywords": product.favorite_set.first().search_keyword,
                     "mall_id": product.platform.mall_id,
-                }
+                },
+                timeout=10  # 添加超时设置
             )
             
             if response.status_code == 200:
@@ -318,58 +328,58 @@ class PriceMonitor:
                 # 找到完全匹配的商品
                 for item in data.get("data", []):
                     if item["wiki_id"] == product.product_id:
-                        return item["article_price"]
+                        return float(item["article_price"])
             return None
         except Exception as e:
-            logger.error(f"Error getting current price: {str(e)}")
+            print(f"获取当前价格失败: {str(e)}")
             return None
             
-    async def send_price_alert(self, email, product, old_price, new_price):
-        # 发送邮件通知
-        discount_percentage = ((old_price - new_price) / old_price) * 100
-        
-        message = f"""
-        您收藏的商品 {product.name} 降价了！
-        
-        原价: ¥{old_price}
-        现价: ¥{new_price}
-        降幅: {discount_percentage:.1f}%
-        
-        立即查看: {product.link}
-        """
-        
-        await send_email(email, "商品降价提醒", message)
+    def send_price_alert(self, email, product, old_price, new_price):
+        """同步版本的邮件发送"""
+        try:
+            # 计算降价百分比
+            discount_percentage = ((old_price - new_price) / old_price) * 100
+            
+            message = f"""
+            您收藏的商品 {product.name} 降价了！
+            
+            原价: ¥{old_price:.2f}
+            现价: ¥{new_price:.2f}
+            降幅: {discount_percentage:.1f}%
+            
+            立即查看: {product.link}
+            """
+            
+            send_mail(
+                subject="商品降价提醒",
+                message=message,
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+            print(f"降价提醒邮件已发送至 {email}")
+            return True
+        except Exception as e:
+            print(f"发送邮件失败: {str(e)}")
+            return False
 
-async def send_email(email, subject, message):
-    try:
-        send_mail(
-            subject=subject,
-            message=message,
-            from_email=settings.EMAIL_HOST_USER,
-            recipient_list=[email],
-            fail_silently=False,
-        )
-        return True
-    except Exception as e:
-        logger.error(f"Failed to send email: {str(e)}")
-        return False
+# 创建监控器实例
+monitor = PriceMonitor()
 
 @api_view(['POST'])
-async def trigger_price_check(request):
-    """手动触发价格检查"""
+def trigger_price_check(request):
+    """手动触发价格检查（同步版本）"""
     try:
-        await monitor.check_price_changes()
+        print("手动触发价格检查...")
+        monitor.check_price_changes()
         return Response({
             "status": "success",
-            "message": "价格检查已触发，邮件通知将在发现降价时发送"
+            "message": "价格检查已完成，如有降价会发送邮件通知"
         })
     except Exception as e:
-        logger.error(f"手动触发价格检查失败: {str(e)}")
+        print(f"手动触发价格检查失败: {str(e)}")
         return Response({
             "status": "error",
-            "message": f"触发失败: {str(e)}"
+            "message": f"检查失败: {str(e)}"
         }, status=500)
-
-# 创建监控器实例，但不立即启动
-monitor = PriceMonitor()
         
