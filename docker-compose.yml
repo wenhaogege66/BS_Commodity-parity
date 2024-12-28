@@ -49,8 +49,10 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s # 给予足够的启动时间
+      # retries: 5
+      # start_period: 60s  # 给予更长的启动时间
 
-  # 数据库服务
+      # 数据库服务
   db:
     image: mysql:8.0
     command: --default-authentication-plugin=mysql_native_password
