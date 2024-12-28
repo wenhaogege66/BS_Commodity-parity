@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: 
+      context: .  # 使用当前目录作为构建上下文
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - "3000:80"  # 映射容器的 80 端口到主机的 3000 端口
+    networks:
+      - frontend_network
+
+networks:
+  frontend_network:
+    driver: bridge 

@@ -1,7 +1,0 @@
-[30496:28052:1224/164759.184:WARNING:chrome_main_delegate.cc(672)] This is Chrome version 131.0.6778.205 (not a warning)
-[30496:28052:1224/164759.426:INFO:chrome_browser_cloud_management_controller.cc(196)] No machine level policy manager exists.
-[33128:30892:1224/164759.605:INFO:cpu_info.cc(53)] Available number of cores: 20
-[30540:32900:1224/164759.699:INFO:cpu_info.cc(53)] Available number of cores: 20
-[30792:31436:1224/164759.798:WARNING:viz_main_impl.cc(85)] VizNullHypothesis is disabled (not a warning)
-[3044:31936:1224/164800.281:INFO:cpu_info.cc(53)] Available number of cores: 20
-[33636:26296:1224/164800.759:INFO:cpu_info.cc(53)] Available number of cores: 20
