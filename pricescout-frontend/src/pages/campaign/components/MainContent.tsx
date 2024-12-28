@@ -462,7 +462,7 @@ export default function MainContent() {
       setPricehis(null);
       try {
         const response = await axios.post(
-          "http://121.36.199.66/api/price-trend/",
+          "http://localhost:8000/api/price-trend/",
           {
             url: commodity.link,
           }
