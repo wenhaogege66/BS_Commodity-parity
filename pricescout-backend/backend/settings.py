@@ -51,6 +51,7 @@ MIDDLEWARE = [
     # 'chaos_api.common.auth_middleware.AuthMidddleware',
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'Commodity.detail_views.ErrorLoggingMiddleware',
 ]
 
 ROOT_URLCONF = "backend.urls"

@@ -37,19 +37,6 @@ const Card = styled(MuiCard)(({ theme }) => ({
   }),
 }));
 
-// 需要存储的对象
-const userInfo = {
-  user_id: 1,
-  user_name: "admin",
-  email: "admin@zju.edu.cn",
-  role: "admin",
-  token:
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJ1c2VyX25hbWUiOiJ3ZW5oYW8iLCJleHAiOjE3MzUzNjg4Mjl9.6rigsZDdDLRCKdPuUpxslPM-j_A4nY7wrLs6qHLm-vc",
-};
-
-// 将对象转化为JSON字符串并存储到localStorage
-localStorage.setItem("userInfo", JSON.stringify(userInfo));
-
 export default function SignInCard() {
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState("");
@@ -67,6 +54,12 @@ export default function SignInCard() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    // 先进行客户端验证
+    if (!validateInputs()) {
+      return; // 如果验证失败，直接返回
+    }
+
     const data = new FormData(event.currentTarget);
     let username = data.get("email");
     let password = data.get("password");
@@ -89,12 +82,23 @@ export default function SignInCard() {
 
         navigate("/", { state: { from: "login", success: true } });
       } else {
+        // 处理后端返回的错误信息
         setPasswordError(true);
         setPasswordErrorMessage(response.data.error || "登录失败");
       }
     } catch (err: any) {
       setPasswordError(true);
-      setPasswordErrorMessage("登录失败，请稍后重试");
+      const errorMessage = err.response?.data?.error || "登录失败，请稍后重试";
+      if (errorMessage.includes("用户不存在")) {
+        setEmailError(true);
+        setEmailErrorMessage(errorMessage);
+      } else if (errorMessage.includes("密码错误")) {
+        setPasswordError(true);
+        setPasswordErrorMessage(errorMessage);
+      } else {
+        setPasswordError(true);
+        setPasswordErrorMessage(errorMessage);
+      }
       console.error("Login error:", err);
     }
   };
@@ -105,22 +109,28 @@ export default function SignInCard() {
 
     let isValid = true;
 
-    if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
+    // 重置所有错误状态
+    setEmailError(false);
+    setEmailErrorMessage("");
+    setPasswordError(false);
+    setPasswordErrorMessage("");
+
+    // 用户名/邮箱验证
+    if (!email.value || email.value.trim().length < 1) {
       setEmailError(true);
-      setEmailErrorMessage("Please enter a valid email address.");
+      setEmailErrorMessage("请输入用户名或邮箱");
       isValid = false;
-    } else {
-      setEmailError(false);
-      setEmailErrorMessage("");
     }
 
-    if (!password.value || password.value.length < 6) {
+    // 密码验证（为管理员账号添加特殊处理）
+    if (email.value === "admin" && password.value === "admin") {
+      // 管理员账号使用特殊验证规则
+      isValid = true;
+    } else if (!password.value || password.value.length < 6) {
+      // 其他普通账号使用常规验证规则
       setPasswordError(true);
-      setPasswordErrorMessage("Password must be at least 6 characters long.");
+      setPasswordErrorMessage("密码长度必须至少为6位");
       isValid = false;
-    } else {
-      setPasswordError(false);
-      setPasswordErrorMessage("");
     }
 
     return isValid;

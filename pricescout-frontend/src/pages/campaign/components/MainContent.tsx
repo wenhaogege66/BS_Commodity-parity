@@ -516,7 +516,9 @@ export default function MainContent() {
     try {
       if (favorites.has(commodity.wiki_id)) {
         // 添加确认对话框
-        if (!window.confirm("收藏商品降价后您将收到邮件提示")) {
+        if (
+          !window.confirm("收藏商品降价后您将收到邮件提示，确定取消收藏吗？")
+        ) {
           return;
         }
         const response = await backendAxios.post("/user/remove_favorite/", {

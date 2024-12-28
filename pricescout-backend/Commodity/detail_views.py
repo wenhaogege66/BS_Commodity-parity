@@ -36,23 +36,101 @@ class PriceTrendAPIView(APIView):
             with cls._driver_lock:
                 if cls._driver is None:
                     try:
+                        print("开始初始化浏览器...")
+                        
                         options = Options()
+                        # 基本设置
                         options.add_argument("--headless")
                         options.add_argument("--disable-gpu")
                         options.add_argument("--no-sandbox")
                         options.add_argument("--disable-dev-shm-usage")
                         
-                        options.binary_location = "/usr/bin/chromium"
+                        # 性能优化设置
+                        options.add_argument("--disable-extensions")
+                        options.add_argument("--disable-default-apps")
+                        options.add_argument("--disable-sync")
+                        options.add_argument("--disable-translate")
+                        options.add_argument("--metrics-recording-only")
+                        options.add_argument("--no-first-run")
                         
-                        cls._driver = webdriver.Chrome(options=options)
+                        # 设置页面大小
+                        options.add_argument("--window-size=1920,1080")
                         
-                        cls._driver.set_page_load_timeout(30)
-                        cls._driver.set_script_timeout(30)
+                        # 添加临时目录设置
+                        import tempfile
+                        temp_dir = tempfile.mkdtemp()
+                        options.add_argument(f"--user-data-dir={temp_dir}")
                         
-                    except WebDriverException as e:
-                        print(f"WebDriver 初始化失败: {e}")
+                        # 直接使用系统安装的 ChromeDriver
+                        service = Service('/usr/bin/chromedriver')
+                        
+                        print("Chrome 选项配置完成，正在创建 WebDriver 实例...")
+                        
+                        # 添加重试机制
+                        max_retries = 3
+                        retry_count = 0
+                        last_error = None
+                        
+                        while retry_count < max_retries:
+                            try:
+                                print(f"尝试创建 WebDriver 实例 (第 {retry_count + 1} 次)")
+                                cls._driver = webdriver.Chrome(service=service, options=options)
+                                print("WebDriver 实例创建成功")
+                                
+                                # 设置超时
+                                cls._driver.set_page_load_timeout(30)
+                                cls._driver.set_script_timeout(30)
+                                cls._driver.implicitly_wait(10)
+                                
+                                # 预热浏览器
+                                print("正在预热浏览器...")
+                                try:
+                                    cls._driver.get("about:blank")
+                                    print("空白页面加载成功")
+                                except Exception as e:
+                                    print(f"空白页面加载失败: {str(e)}")
+                                
+                                print("浏览器初始化完成！")
+                                break
+                                
+                            except Exception as e:
+                                last_error = e
+                                retry_count += 1
+                                print(f"第 {retry_count} 次尝试失败: {str(e)}")
+                                if retry_count < max_retries:
+                                    wait_time = 5
+                                    print(f"等待 {wait_time} 秒后重试...")
+                                    time.sleep(wait_time)
+                                else:
+                                    print("已达到最大重试次数")
+                                    raise last_error
+                                    
+                    except Exception as e:
+                        print(f"浏览器初始化过程中发生错误: {str(e)}")
+                        cls._driver = None
                         raise
+                        
         return cls._driver
+
+    @classmethod
+    def reset_driver(cls):
+        """重置浏览器实例（当发生错误时调用）"""
+        with cls._driver_lock:
+            if cls._driver:
+                try:
+                    cls._driver.quit()
+                except:
+                    pass
+                finally:
+                    cls._driver = None
+
+    def __del__(self):
+        """在对象被销毁时关闭浏览器"""
+        if self._driver:
+            try:
+                self._driver.quit()
+            except:
+                pass
     
     def get_image_path(self, url_hash):
         """根据 URL 哈希值生成图片的文件路径"""
@@ -75,67 +153,70 @@ class PriceTrendAPIView(APIView):
         """接收前端发送的商品链接，爬取商品历史趋势价格并返回。"""
         data = request.data
         url = data.get("url")
-        print("url:", url)
+        print("开始处理URL请求:", url)
         if not url:
             return Response({"error": "URL is required"}, status=400)
         
-                # 生成 URL 的哈希值，用于唯一标识
+        # 生成 URL 的哈希值，用于唯一标识
         url_hash = hashlib.md5(url.encode()).hexdigest()
-                # 检查是否已经存在该 URL 的图片文件
+        print(f"生成的URL哈希值: {url_hash}")
+        
+        # 检查是否已经存在该 URL 的图片文件
         full_page_path, screenshot_path = self.get_image_path(url_hash)
         if os.path.exists(screenshot_path):
-            print("图片已存在，直接返回图片路径")
+            print(f"找到已存在的图片文件: {screenshot_path}")
             return Response({
                 "screenshots": {
-                    "full_page": full_page_path,
-                    "cropped": screenshot_path
+                    "full_page": f"/pricehis/full_page_{url_hash}.png",
+                    "cropped": f"/pricehis/price_trend_{url_hash}.png"
                 },
                 "message": "返回已存在的图片"
             }, status=200)
             
         driver = None
         try:
+            print("准备获取WebDriver实例...")
             driver = self.get_driver()
+            print("成功获取WebDriver实例")
+            
             driver.set_window_size(1920, 1080)
+            print("设置窗口大小完成")
+            
+            print("开始访问价格网站...")
             driver.get("http://www.hisprice.cn/")
-            print("已打开网站")
+            print("成功加载价格网站")
+
+            print("等待输入框出现...")
             input_box = WebDriverWait(driver, 10).until(
                 EC.presence_of_element_located((By.ID, "kValId"))
             )
+            print("找到输入框，准备输入URL")
+            
             input_box.clear()
             input_box.send_keys(url + Keys.RETURN)
             print("已输入URL并回车")
-            # 等待 container 内内容加载且不为空
+
+            print("等待内容加载...")
             WebDriverWait(driver, 15).until(
                 lambda d: d.find_element(By.ID, "container").get_attribute("innerHTML").strip() != ""
             )
-            print("已加载目标内容")
+            print("内容加载完成")
 
-            # 不需要重新定义 save_dir，直接使用 get_image_path 的返回值
-            full_page_path, screenshot_path = self.get_image_path(url_hash)
-            
             container = driver.find_element(By.ID, "container")
-            # 确保滚动完成后再截图
+            print("找到container元素")
+
+            print(f"准备保存全页面截图: {full_page_path}")
             driver.execute_script("arguments[0].scrollIntoView();", container)
-            # 截取整个页面
-            print(f"尝试保存全页面截图到: {full_page_path}")
             driver.save_screenshot(full_page_path)
-            print(f"全页面截图保存成功，检查文件是否存在: {os.path.exists(full_page_path)}")
-            print(f"文件大小: {os.path.getsize(full_page_path)} bytes")
+            print("全页面截图保存成功")
 
-            # 只截取页面的上部分
+            print("开始处理图片裁剪...")
             image = Image.open(full_page_path)
-            print(f"全页面截图的宽高: 宽度={image.width}, 高度={image.height}")
-
-            # 设定裁剪的区域（假设我们只截取页面的上半部分）
-            # 可以根据实际需求调整 height 值
-            height = 400  
             location = container.location
             size = container.size
-
-            # 打印位置和大小
-            print(f'container 的位置: {location}')
-            print(f'container 的大小: {size}')
+            
+            print(f"container位置: {location}")
+            print(f"container大小: {size}")
 
             left = location['x']
             top = 0
@@ -143,38 +224,32 @@ class PriceTrendAPIView(APIView):
             bottom = top + size['height']
 
             cropped_image = image.crop((left, top, right, bottom))
-            print(f"尝试保存裁剪图片到: {screenshot_path}")
+            print(f"准备保存裁剪后的图片: {screenshot_path}")
             cropped_image.save(screenshot_path)
-            print(f"裁剪图片保存成功，检查文件是否存在: {os.path.exists(screenshot_path)}")
-            print(f"文件大小: {os.path.getsize(screenshot_path)} bytes")
+            print("裁剪图片保存成功")
 
-
-            # 使用 JS 获取内容
+            print("获取页面内容...")
             search_content = driver.execute_script("return document.getElementById('container').innerHTML;")
-            # 清理 HTML 内容
             clean_content = re.sub(r'\s+', ' ', search_content).strip()
-            print("清理后的内容:", clean_content)
+            print("页面内容获取完成")
 
-            # 返回截图路径和内容
+            print("准备返回响应...")
             return Response({
                 "data": clean_content,
                 "screenshots": {
-                    "full_page": f"/pricehis/full_page_{url_hash}.png",  # 返回相对路径
-                    "cropped": f"/pricehis/price_trend_{url_hash}.png"   # 返回相对路径
+                    "full_page": f"/pricehis/full_page_{url_hash}.png",
+                    "cropped": f"/pricehis/price_trend_{url_hash}.png"
                 }
             }, status=200)
         except TimeoutException:
+            self.__class__.reset_driver()  # 超时时重置浏览器
             return Response({"error": "页面加载超时，请检查目标网站状态或输入内容"}, status=504)
         except WebDriverException as e:
+            self.__class__.reset_driver()  # 浏览器错误时重置
             return Response({"error": f"浏览器操作失败: {e}"}, status=500)
         except Exception as e:
+            self.__class__.reset_driver()  # 其他错误时也重置
             return Response({"error": f"发生未知错误: {str(e)}"}, status=500)
-        # finally:
-        #     # 可选：关闭当前 WebDriver 实例，释放资源
-        #     if driver:
-        #         driver.quit()
-        #         self.__class__._driver = None  # 重置共享 driver 实例
-        #         print("已关闭浏览器，释放资源")
         
 @api_view(['GET'])
 def health_check(request):

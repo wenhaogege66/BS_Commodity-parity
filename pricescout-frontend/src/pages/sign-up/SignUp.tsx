@@ -19,7 +19,7 @@ import Typography from "@mui/material/Typography";
 import * as React from "react";
 import { useNavigate } from "react-router-dom";
 import HandChainrityIcon from "../../component/HandChainrityIcon";
-import { backendAxios } from '../../config/api.config';
+import { backendAxios } from "../../config/api.config";
 import TemplateFrame from "./TemplateFrame";
 import getSignUpTheme from "./theme/getSignUpTheme";
 
@@ -102,49 +102,51 @@ export default function SignUp() {
 
     let isValid = true;
 
-    if (!name.value || name.value.length < 1) {
+    // 重置所有错误状态
+    setNameError(false);
+    setNameErrorMessage("");
+    setEmailError(false);
+    setEmailErrorMessage("");
+    setPasswordError(false);
+    setPasswordErrorMessage("");
+    setAddressError(false);
+    setAddressErrorMessage("");
+
+    // 用户名验证
+    if (!name.value || name.value.trim().length < 1) {
       setNameError(true);
-      setNameErrorMessage("Name is required.");
+      setNameErrorMessage("用户名不能为空");
       isValid = false;
-    } else {
-      setNameError(false);
-      setNameErrorMessage("");
     }
 
-    if (!email.value || !/\S+@\S+\.\S+/.test(email.value)) {
+    // 邮箱验证
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.value || !emailRegex.test(email.value)) {
       setEmailError(true);
-      setEmailErrorMessage("Please enter a valid email phone_num.");
+      setEmailErrorMessage("请输入有效的邮箱地址");
       isValid = false;
-    } else {
-      setEmailError(false);
-      setEmailErrorMessage("");
     }
 
+    // 密码验证
     if (!password.value || password.value.length < 6) {
       setPasswordError(true);
-      setPasswordErrorMessage("Password must be at least 6 characters long.");
+      setPasswordErrorMessage("密码长度必须至少为6位");
       isValid = false;
-    } else {
-      setPasswordError(false);
-      setPasswordErrorMessage("");
     }
 
-    if (!phone_num.value || phone_num.value.length !== 11) {
+    // 手机号验证
+    const phoneRegex = /^1[3-9]\d{9}$/;
+    if (!phone_num.value || !phoneRegex.test(phone_num.value)) {
       setAddressError(true);
-      setAddressErrorMessage("Please input the right phone number.");
+      setAddressErrorMessage("请输入有效的11位手机号码");
       isValid = false;
-    } else {
-      setAddressError(false);
-      setAddressErrorMessage("");
     }
 
+    // 确认密码验证
     if (!confirm.value || confirm.value !== password.value) {
       setPasswordError(true);
-      setPasswordErrorMessage("Password does not match.");
+      setPasswordErrorMessage("两次输入的密码不一致");
       isValid = false;
-    } else {
-      setPasswordError(false);
-      setPasswordErrorMessage("");
     }
 
     return isValid;
@@ -152,27 +154,51 @@ export default function SignUp() {
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    // 先进行客户端验证
+    if (!validateInputs()) {
+      return; // 如果验证失败，直接返回
+    }
+
     const data = new FormData(event.currentTarget);
-    
+
     try {
-      const response = await backendAxios.post('/user/sign_up/', {
-        user_name: data.get('name'),
-        email: data.get('email'),
-        password: data.get('password'),
-        phone_num: data.get('phone_num'),
-        role: 'user'
+      const response = await backendAxios.post("/user/sign_up/", {
+        user_name: data.get("name"),
+        email: data.get("email"),
+        password: data.get("password"),
+        phone_num: data.get("phone_num"),
+        role: "user",
       });
 
       if (response.data.state) {
-        localStorage.setItem('userInfo', JSON.stringify(response.data.userInfo));
-        backendAxios.defaults.headers.common['Authorization'] = response.data.userInfo.token;
-        window.dispatchEvent(new Event('userInfoUpdate'));
-        navigate('/', { state: { from: 'register', success: true } });
+        localStorage.setItem(
+          "userInfo",
+          JSON.stringify(response.data.userInfo)
+        );
+        backendAxios.defaults.headers.common["Authorization"] =
+          response.data.userInfo.token;
+        window.dispatchEvent(new Event("userInfoUpdate"));
+        navigate("/", { state: { from: "register", success: true } });
+      } else {
+        // 处理后端返回的错误信息
+        setNameError(true);
+        setNameErrorMessage(response.data.error || "注册失败，请稍后重试");
       }
     } catch (err: any) {
-      console.error('Registration error:', err);
-      setNameError(true);
-      setNameErrorMessage(err.response?.data?.error || '注册失败，请稍后重试');
+      console.error("Registration error:", err);
+      // 显示后端返回的具体错误信息
+      const errorMessage = err.response?.data?.error || "注册失败，请稍后重试";
+      if (errorMessage.includes("用户名已存在")) {
+        setNameError(true);
+        setNameErrorMessage(errorMessage);
+      } else if (errorMessage.includes("邮箱已被注册")) {
+        setEmailError(true);
+        setEmailErrorMessage(errorMessage);
+      } else {
+        setNameError(true);
+        setNameErrorMessage(errorMessage);
+      }
     }
   };
 
@@ -202,14 +228,17 @@ export default function SignUp() {
                   justifyContent: "start",
                   gap: 0, // 设置图标和文字之间的间距
                   mb: 0, // 设置底部的间距
-                  ml:-4,
+                  ml: -4,
                 }}
               >
                 <HandChainrityIcon />
                 <Typography
                   component="h4"
                   variant="inherit"
-                  sx={{ fontSize: "clamp(2rem, 10vw, 2.15rem)",color:"#ff914d"}}
+                  sx={{
+                    fontSize: "clamp(2rem, 10vw, 2.15rem)",
+                    color: "#ff914d",
+                  }}
                 >
                   PriceScout
                 </Typography>

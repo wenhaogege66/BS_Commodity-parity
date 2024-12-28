@@ -511,7 +511,7 @@ export default function User() {
                     onClick={async () => {
                       try {
                         const response = await backendAxios.post(
-                          "/api/trigger-price-check/"
+                          "/user/trigger-price-check/"
                         );
                         if (response.data.status === "success") {
                           alert("价格检查已触发，如有降价将发送邮件通知");
